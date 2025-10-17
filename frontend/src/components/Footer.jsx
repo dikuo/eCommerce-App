@@ -29,6 +29,11 @@ const Footer = () => {
                     <li>contact@forever.com</li>
                 </ul>
             </div>
+
+            <div>
+                <hr />
+                <p className='py-5 text-sm text-center'>Copyright 2025@forever.com All Right Reseverd.</p>
+            </div>
         </div>
     </div>
   )
