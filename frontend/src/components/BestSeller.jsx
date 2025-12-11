@@ -11,7 +11,7 @@ const BestSeller = () => {
     useEffect(() => {
         const bestProdcut = products.filter((item) => item.bestseller);
         setBestSeller(bestProdcut.slice(0, 5));
-    }, [])
+    }, [products])
 
   return (
     <div className='my-10'>
