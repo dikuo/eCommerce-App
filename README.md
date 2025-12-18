@@ -1,2 +1,2 @@
-demo: https://forever-frontend-self-tau.vercel.app/
-admin: https://forever-admin-five-hazel.vercel.app/
+- [View Demo Site](https://forever-frontend-self-tau.vercel.app/)
+- [View Admin Panel](https://forever-admin-five-hazel.vercel.app/)
