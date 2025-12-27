@@ -246,7 +246,6 @@ The `vercel.json` configuration files in each directory handle routing and build
 ## Project Structure
 
 ```
-app/
 ├── backend/          # Express.js API server
 │   ├── config/       # Database and service configurations
 │   ├── controllers/  # Request handlers
@@ -254,16 +253,28 @@ app/
 │   ├── models/       # Mongoose data models
 │   ├── routes/       # API route definitions
 │   ├── Dockerfile    # Docker configuration
-│   └── server.js     # Application entry point
+│   ├── server.js     # Application entry point
+│   ├── package.json  # Backend dependencies
+│   └── vercel.json   # Vercel deployment configuration
 ├── frontend/         # Customer-facing React application
-│   └── src/
-│       ├── components/  # Reusable UI components
-│       ├── pages/       # Page components
-│       └── context/     # React context providers
+│   ├── src/
+│   │   ├── components/  # Reusable UI components
+│   │   ├── pages/       # Page components
+│   │   ├── context/     # React context providers
+│   │   └── assets/      # Frontend assets and images
+│   ├── public/       # Static public files
+│   ├── package.json  # Frontend dependencies
+│   ├── vite.config.js # Vite build configuration
+│   └── vercel.json   # Vercel deployment configuration
 └── admin/            # Admin dashboard React application
-    └── src/
-        ├── components/  # Admin UI components
-        └── pages/       # Admin page components
+    ├── src/
+    │   ├── components/  # Admin UI components
+    │   ├── pages/       # Admin page components
+    │   └── assets/      # Admin assets and images
+    ├── public/       # Static public files
+    ├── package.json  # Admin dependencies
+    ├── vite.config.js # Vite build configuration
+    └── vercel.json   # Vercel deployment configuration
 ```
 
 ## Contributing
