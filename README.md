@@ -4,7 +4,8 @@ A full-stack e-commerce application built with the MERN stack, featuring multi-g
 
 ## 🚀 Live Demo
 
-**Frontend Application:** [https://forever-frontend-self-tau.vercel.app/](https://forever-frontend-self-tau.vercel.app/)
+- **Frontend Application:** [https://forever-frontend-self-tau.vercel.app/](https://forever-frontend-self-tau.vercel.app/)
+- **Admin Panel:** [https://forever-admin-five-hazel.vercel.app/](https://forever-admin-five-hazel.vercel.app/)
 
 ## 📋 Table of Contents
 
@@ -259,4 +260,3 @@ This project is open source and available under the [MIT License](LICENSE).
 ---
 
 **Repository**: [https://github.com/dikuo/eCommerce-App](https://github.com/dikuo/eCommerce-App)
-
