@@ -249,7 +249,7 @@ The `vercel.json` configuration files in each directory handle routing and build
 app/
 ├── backend/          # Express.js API server
 │   ├── config/       # Database and service configurations
-│   ├── controllers/   # Request handlers
+│   ├── controllers/  # Request handlers
 │   ├── middleware/   # Authentication and file upload
 │   ├── models/       # Mongoose data models
 │   ├── routes/       # API route definitions
@@ -277,4 +277,3 @@ This project is open source and available under the MIT License.
 ---
 
 **Repository**: [https://github.com/dikuo/eCommerce-App](https://github.com/dikuo/eCommerce-App)
-
