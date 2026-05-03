@@ -1,10 +1,24 @@
-import { useContext, useState } from "react";
-import { assets } from "../assets/assets";
+import { useContext } from "react";
 import { Link, NavLink } from "react-router-dom";
 import { ShopContext } from "../context/ShopContext.tsx";
+import { assets } from "../assets/assets";
+
+// 🟢 Premium Shadcn & Lucide Imports
+import { ShoppingCart, User, Search, Menu } from "lucide-react";
+import { Button } from "./ui/button";
+import { Badge } from "./ui/badge";
+import { Sheet, SheetContent, SheetTrigger, SheetTitle } from "./ui/sheet";
+import { Separator } from "./ui/separator";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 
 const Navbar = () => {
-  const [visible, setVisible] = useState(false);
+  // Notice we deleted the `visible` state! Shadcn's <Sheet> handles it automatically.
   const { setShowSearch, getCartCount, navigate, token, setToken, setCartItems } = useContext(ShopContext);
 
   const logout = () => {
@@ -14,86 +28,99 @@ const Navbar = () => {
     setCartItems({});
   };
 
+  // NavLink styling helper for that clean underline effect
+  const navLinkClasses = ({ isActive }: { isActive: boolean }) =>
+    `relative flex flex-col items-center gap-1 hover:text-black transition-colors ${
+      isActive ? "text-black after:block after:h-[2px] after:w-1/2 after:bg-black after:absolute after:-bottom-1" : "text-gray-500"
+    }`;
+
   return (
-    <div className="flex items-center justify-between py-5 font-medium">
-      <Link to="/">
-        <img src={assets.logo} className="w-36" alt="" />
-      </Link>
-
-      <ul className="hidden sm:flex gap-5 text-sm text-gray-700">
-        <NavLink to="/" className="flex flex-col items-center gap-1">
-          <p>HOME</p>
-          <hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" />
-        </NavLink>
-
-        <NavLink to="/collection" className="flex flex-col items-center gap-1">
-          <p>COLLECTION</p>
-          <hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" />
-        </NavLink>
-
-        <NavLink to="/about" className="flex flex-col items-center gap-1">
-          <p>ABOUT</p>
-          <hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" />
-        </NavLink>
-
-        <NavLink to="/contact" className="flex flex-col items-center gap-1">
-          <p>CONTACT</p>
-          <hr className="w-2/4 border-none h-[1.5px] bg-gray-700 hidden" />
-        </NavLink>
-      </ul>
-
-      <div className="flex items-center gap-6">
-        <img onClick={() => setShowSearch(true)} src={assets.search_icon} className="w-5 cursor-pointer" alt="" />
-
-        <div className="group relative">
-          <img onClick={() => (token ? null : navigate("/login"))} className="w-5 cursor-pointer" src={assets.profile_icon} alt="" />
-          {token && (
-            <div className="group-hover:block hidden absolute dropdown-menu right-0 pt-4">
-              <div className="flex flex-col gap-2 w-36 py-3 px-5 bg-slate-100 text-gray-500 rounded">
-                <p className="cursor-pointer hover:text-black">My Profile</p>
-                <p onClick={() => navigate("/orders")} className="cursor-pointer hover:text-black">
-                  Order
-                </p>
-                <p onClick={logout} className="cursor-pointer hover:text-black">
-                  Logout
-                </p>
-              </div>
-            </div>
-          )}
-        </div>
-
-        <Link to="/cart" className="relative">
-          <img src={assets.cart_icon} className="w-5 min-w-5" alt="" />
-          <p className="absolute right-[-5px] bottom-[-5px] w-4 text-center leading-4 bg-black text-white aspect-square rounded-full text-[8px]">
-            {getCartCount()}
-          </p>
+    <header className="sticky top-0 z-50 w-full bg-white/80 backdrop-blur-md border-b border-gray-100">
+      <div className="flex items-center justify-between py-4 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto font-medium">
+        
+        {/* Logo */}
+        <Link to="/">
+          <img src={assets.logo} className="w-32 hover:opacity-80 transition-opacity" alt="Logo" />
         </Link>
 
-        <img onClick={() => setVisible(true)} src={assets.menu_icon} className="w-5 cursor-pointer sm:hidden" alt="" />
-      </div>
+        {/* Desktop Navigation */}
+        <ul className="hidden sm:flex gap-8 text-sm uppercase tracking-wider">
+          <NavLink to="/" className={navLinkClasses}>HOME</NavLink>
+          <NavLink to="/collection" className={navLinkClasses}>COLLECTION</NavLink>
+          <NavLink to="/about" className={navLinkClasses}>ABOUT</NavLink>
+          <NavLink to="/contact" className={navLinkClasses}>CONTACT</NavLink>
+        </ul>
 
-      <div className={`absolute top-0 right-0 bottom-0 overflow-hidden bg-white transition-all ${visible ? "w-full" : "w-0"}`}>
-        <div className="flex flex-col text-gray-600">
-          <div onClick={() => setVisible(false)} className="flex items-center gap-4 p-3 cursor-pointer">
-            <img className="h-4 rotate-180" src={assets.dropdown_icon} alt="" />
-            <p>Back</p>
+        {/* Actions (Search, Profile, Cart, Mobile Menu) */}
+        <div className="flex items-center gap-2">
+          
+          <Button variant="ghost" size="icon" onClick={() => setShowSearch(true)}>
+            <Search className="w-5 h-5 text-gray-700" />
+          </Button>
+
+          {/* Profile Dropdown */}
+          <div className="relative">
+            {token ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="icon" className="focus-visible:ring-0">
+                    <User className="w-5 h-5 text-gray-700" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-48 font-medium">
+                  <DropdownMenuItem className="cursor-pointer py-2">My Profile</DropdownMenuItem>
+                  <DropdownMenuItem className="cursor-pointer py-2" onClick={() => navigate("/orders")}>
+                    Orders
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem className="cursor-pointer py-2 text-red-600 focus:bg-red-50 focus:text-red-700" onClick={logout}>
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <Button variant="ghost" size="icon" onClick={() => navigate("/login")}>
+                <User className="w-5 h-5 text-gray-700" />
+              </Button>
+            )}
           </div>
 
-          <NavLink onClick={() => setVisible(false)} className="py-2 pl-6 border" to="/">
-            HOME
-          </NavLink>
-          <NavLink onClick={() => setVisible(false)} className="py-2 pl-6 border" to="/collection">
-            COLLECTION
-          </NavLink>
-          <NavLink onClick={() => setVisible(false)} className="py-2 pl-6 border" to="/about">
-            ABOUT
-          </NavLink>
-          <NavLink onClick={() => setVisible(false)} className="py-2 pl-6 border" to="/contact">
-            CONTACT
-          </NavLink>
+          {/* Cart Icon with Shadcn Badge */}
+          <Link to="/cart" className="relative mt-1">
+            <Button variant="ghost" size="icon">
+              <ShoppingCart className="w-5 h-5 text-gray-700" />
+            </Button>
+            {getCartCount() > 0 && (
+              <Badge className="absolute top-0 right-0 h-4 min-w-4 px-1 flex items-center justify-center text-[10px] rounded-full">
+                {getCartCount()}
+              </Badge>
+            )}
+          </Link>
+
+          {/* Mobile Navigation (Shadcn Sheet) */}
+          <div className="sm:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="w-6 h-6 text-gray-700" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right" className="flex flex-col gap-6 pt-12">
+                {/* Screen readers require a title for accessibility */}
+                <SheetTitle className="sr-only">Mobile Menu</SheetTitle>
+                <nav className="flex flex-col gap-4 text-lg">
+                  <NavLink to="/" className="py-2 border-b border-gray-100 uppercase tracking-widest">Home</NavLink>
+                  <NavLink to="/collection" className="py-2 border-b border-gray-100 uppercase tracking-widest">Collection</NavLink>
+                  <NavLink to="/about" className="py-2 border-b border-gray-100 uppercase tracking-widest">About</NavLink>
+                  <NavLink to="/contact" className="py-2 border-b border-gray-100 uppercase tracking-widest">Contact</NavLink>
+                </nav>
+              </SheetContent>
+            </Sheet>
+          </div>
+
         </div>
       </div>
-    </div>
+    </header>
   );
 };
 
