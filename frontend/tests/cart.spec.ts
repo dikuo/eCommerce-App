@@ -1,42 +1,70 @@
 import { test, expect } from '@playwright/test';
 
-// Adjust this if your Vite server runs on a different port
 const LOCALHOST_URL = 'http://localhost:5173';
 
 test.describe('Shopping Cart Flow', () => {
-  test('should load the homepage and display Best Sellers', async ({ page }) => {
+  
+  // Test 1: Baseline UI Check
+  test('should load the homepage and display the refined headings', async ({ page }) => {
     await page.goto(LOCALHOST_URL);
-
-    // Verify the page loaded correctly without TS/React crashes
-    // We know from your BestSeller.tsx that this text should exist
-    const bestSellerHeading = page.locator('text=BEST SELLERS');
-    await expect(bestSellerHeading).toBeVisible();
+    await expect(page.getByRole('heading', { name: /bestsellers/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /latest arrivals/i })).toBeVisible();
   });
 
-  test('should allow a user to navigate to a product and add it to the cart', async ({ page }) => {
+  // Test 2: Navigation and Cart Addition
+  test('should navigate to a product from the collection and add to cart', async ({ page }) => {
     await page.goto(`${LOCALHOST_URL}/collection`);
 
-    // 1. Click on the first product in the collection grid
-    // (You may need to adjust this selector based on your exact CSS classes)
-    const firstProduct = page.locator('.grid a').first();
+    const firstProduct = page.getByRole('link').filter({ hasText: '$' }).first();
     await firstProduct.click();
 
-    // 2. Verify we are on the product detail page
     await expect(page).toHaveURL(/.*product.*/);
 
-    // 3. Select a size (Assuming size buttons exist, e.g., 'M' or 'L')
-    // Playwright will look for a button with exact text 'M'
-    const sizeButton = page.getByText('M', { exact: true });
+    const sizeButton = page.getByRole('button', { name: 'M', exact: true }).or(page.getByText('M', { exact: true }));
     if (await sizeButton.isVisible()) {
       await sizeButton.click();
     }
 
-    // 4. Click the Add to Cart button
-    await page.getByRole('button', { name: /add to cart/i }).click();
+    const addToCartBtn = page.getByRole('button', { name: /add to cart/i });
+    await expect(addToCartBtn).toBeEnabled();
+    await addToCartBtn.click();
 
-    // 5. Verify the ShopContext updated by checking if the toast appears or cart count changes
-    // Toastify usually renders a div with the role of 'alert'
-    const toastMessage = page.getByRole('alert');
+    const toastMessage = page.locator('.Toastify__toast-body').or(page.getByRole('alert'));
     await expect(toastMessage).toBeVisible();
   });
+
+  // Test 3: Filtering Logic
+  test('should filter products by category', async ({ page }) => {
+    await page.goto(`${LOCALHOST_URL}/collection`);
+
+    // 🟢 ADD THIS: Wait for at least one product to load before filtering
+    await expect(page.getByRole('link').filter({ hasText: '$' }).first()).toBeVisible({ timeout: 10000 });
+
+    const menCheckbox = page.getByRole('checkbox', { name: /men/i }).or(page.getByText('Men', { exact: true }));
+    await menCheckbox.click();
+
+    // 🟢 ADD THIS: Give the filter a moment to react
+    await page.waitForTimeout(1000); 
+
+    const filteredProduct = page.getByRole('link').filter({ hasText: '$' }).first();
+    await expect(filteredProduct).toContainText(/Men/i);
+  });
+
+  // Test 4: Search UI and Results
+  test('should search for a specific product', async ({ page }) => {
+    await page.goto(`${LOCALHOST_URL}/collection`);
+
+    // Click the search icon in the Navbar (usually the first button in your banner)
+    await page.getByRole('banner').getByRole('button').first().click();
+
+    const searchInput = page.getByPlaceholder(/search/i);
+    await expect(searchInput).toBeVisible();
+    
+    await searchInput.fill('Cotton Top');
+    await searchInput.press('Enter');
+
+    // Verify the results heading or a specific product name appears
+    await expect(page.getByRole('heading', { name: /cotton top/i }).first()).toBeVisible();
+  });
+
 });
