@@ -37,10 +37,11 @@ jobs:
       run: npx playwright install --with-deps
 
     - name: Run Backend and Frontend
-      # 1. Start backend in background
-      # 2. Start frontend in background 
-      # 3. Wait for both ports (4000 and 5173) to be alive
-      # 4. Run the tests
+      env:
+        # These MUST match the names you typed in the GitHub Settings page
+        STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
+        MONGODB_URI: ${{ secrets.MONGODB_URI }}
+        # Add any others you uploaded (JWT_SECRET, etc.)
       run: |
         cd ../backend && npm start & 
         npm run dev & 
