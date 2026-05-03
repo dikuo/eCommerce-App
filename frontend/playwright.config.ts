@@ -27,7 +27,7 @@ export default defineConfig({
   webServer: {
     command: 'npm run dev',        // The command to start your Cara frontend
     url: 'http://localhost:5173', // The URL to wait for
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: true,
     timeout: 120 * 1000,           // Give it 2 minutes to boot up in CI
   },
 });

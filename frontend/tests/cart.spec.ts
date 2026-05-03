@@ -37,11 +37,15 @@ test.describe('Shopping Cart Flow', () => {
   test('should filter products by category', async ({ page }) => {
     await page.goto(`${LOCALHOST_URL}/collection`);
 
-    // Targeting the 'Men' checkbox based on your paragraph/checkbox structure
+    // 🟢 ADD THIS: Wait for at least one product to load before filtering
+    await expect(page.getByRole('link').filter({ hasText: '$' }).first()).toBeVisible({ timeout: 10000 });
+
     const menCheckbox = page.getByRole('checkbox', { name: /men/i }).or(page.getByText('Men', { exact: true }));
     await menCheckbox.click();
 
-    // Verify the first product link now contains "Men" to ensure the filter applied
+    // 🟢 ADD THIS: Give the filter a moment to react
+    await page.waitForTimeout(1000); 
+
     const filteredProduct = page.getByRole('link').filter({ hasText: '$' }).first();
     await expect(filteredProduct).toContainText(/Men/i);
   });
