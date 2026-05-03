@@ -17,6 +17,7 @@
     "jsx": "react-jsx",
     "allowImportingTsExtensions": true,
     "paths": {
+      "@/*": ["./src/*"],
       "@shared/*": ["../shared/src/*"]
     },
     "types": ["vite/client"]

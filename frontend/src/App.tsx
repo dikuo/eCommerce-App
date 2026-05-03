@@ -14,12 +14,19 @@ import SearchBar from "./components/SearchBar.tsx";
 import { ToastContainer } from "react-toastify";
 import Verify from "./pages/Verify.tsx";
 
+// 🟢 Import the new utility
+import ScrollToTop from "./components/ScrollToTop.tsx";
+
 const App = () => {
   return (
     <div className="px-4 sm:px-[5vw] md:px-[7vw] lg:px-[9vw]">
+      {/* 🟢 This invisible component handles the scroll reset on every route change */}
+      <ScrollToTop />
+      
       <ToastContainer />
       <Navbar />
       <SearchBar />
+      
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/collection" element={<Collection />} />
@@ -32,6 +39,7 @@ const App = () => {
         <Route path="/orders" element={<Orders />} />
         <Route path="/verify" element={<Verify />} />
       </Routes>
+      
       <Footer />
     </div>
   );
