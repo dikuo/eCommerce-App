@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+/* Force variables to stay light */
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+/* Delete ANY @media (prefers-color-scheme: dark) blocks */
+
+body {
+  background-color: white !important;
+  color: #171717 !important;
+}
