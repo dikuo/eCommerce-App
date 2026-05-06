@@ -23,10 +23,10 @@ const nextConfig: NextConfig = {
   /* 3. Docker/Kubernetes Optimization */
   // Tells the build process to look at the monorepo root for dependencies
 
-  outputFileTracingRoot: path.join(__dirname, "../../"),
+  // outputFileTracingRoot: path.join(__dirname, "../../"),
   
   // Recommended for Docker: Creates a tiny, standalone production build
-  output: 'standalone', 
+  // output: 'standalone', 
 };
 
 export default nextConfig;
