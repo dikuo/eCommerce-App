@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
-import { ShopContext } from "../context/ShopContext.tsx";
-import ProductItem from "./ProductItem.tsx";
+import { ShopContext } from "@/context/ShopContext";
+import ProductItem from "@/components/ProductItem";
 import type { Product } from "@shared/types";
 
 const LatestCollection = () => {
