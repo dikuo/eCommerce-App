@@ -3,8 +3,11 @@
 import { useContext, useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { ShopContext } from "@/context/ShopContext";
 import axios from "axios";
-import { toast } from "react-toastify";
-import { useRouter } from "next/navigation"; // Next.js 15 navigation
+import { toast } from "sonner"; // Switched to Sonner for that cleaner premium look
+import { useRouter } from "next/navigation";
+import { Mail, Lock, User, ArrowRight, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const Login = () => {
   const [currentState, setCurrentState] = useState("Login");
@@ -14,23 +17,24 @@ const Login = () => {
   const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
+  const [loading, setLoading] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
-  // Hydration Guard
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
   const onSubmitHandler = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
       if (currentState === "Sign Up") {
         const response = await axios.post(backendUrl + "/api/user/register", { name, email, password });
-
         if (response.data.success) {
           setToken(response.data.token);
           localStorage.setItem("token", response.data.token);
+          toast.success("Welcome to the community!");
         } else {
           toast.error(response.data.message);
         }
@@ -39,6 +43,7 @@ const Login = () => {
         if (response.data.success) {
           setToken(response.data.token);
           localStorage.setItem("token", response.data.token);
+          toast.success("Welcome back");
         } else {
           toast.error(response.data.message);
         }
@@ -46,72 +51,106 @@ const Login = () => {
     } catch (error) {
       console.error(error);
       toast.error((error as Error).message);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Redirect if logged in
   useEffect(() => {
     if (token) {
       router.push("/");
     }
   }, [token, router]);
 
-  // Don't render until client-side hydration is complete
   if (!isMounted) return null;
 
   return (
-    <form onSubmit={onSubmitHandler} className="flex flex-col items-center w-[90%] sm:max-w-96 m-auto mt-14 gap-4 text-gray-800 min-h-[60vh]">
-      <div className="inline-flex items-center gap-2 mb-2 mt-10">
-        <p className="prata-regular text-3xl">{currentState}</p>
-        <hr className="border-none h-[1.5px] w-8 bg-gray-800" />
-      </div>
-
-      {currentState !== "Login" && (
-        <input
-          onChange={(e: ChangeEvent<HTMLInputElement>) => setName(e.target.value)}
-          value={name}
-          type="text"
-          className="w-full px-3 py-2 border border-gray-800"
-          placeholder="Name"
-          required
-        />
-      )}
-
-      <input
-        onChange={(e: ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-        value={email}
-        type="email"
-        className="w-full px-3 py-2 border border-gray-800"
-        placeholder="Email"
-        required
-      />
-
-      <input
-        onChange={(e: ChangeEvent<HTMLInputElement>) => setPassword(e.target.value)}
-        value={password}
-        type="password"
-        className="w-full px-3 py-2 border border-gray-800"
-        placeholder="Password"
-        required
-      />
-
-      <div className="w-full flex justify-between text-sm mt-[-8px]">
-        <p className="cursor-pointer">Forgot your password?</p>
-        {currentState === "Login" ? (
-          <p onClick={() => setCurrentState("Sign Up")} className="cursor-pointer hover:text-black">
-            Create account
+    <div className="min-h-[70vh] flex items-center justify-center px-4 py-20 animate-in fade-in duration-700">
+      <div className="w-full max-w-[400px] space-y-8">
+        
+        {/* --- Header Section --- */}
+        <div className="text-center space-y-3">
+          <h2 className="text-3xl font-medium tracking-tighter text-zinc-900 uppercase">
+            {currentState}
+          </h2>
+          <div className="h-[1px] w-12 bg-black mx-auto" />
+          <p className="text-[10px] text-zinc-400 font-bold tracking-[0.2em] pt-2 uppercase">
+            {currentState === 'Login' ? 'Enter your credentials' : 'Create your account'}
           </p>
-        ) : (
-          <p onClick={() => setCurrentState("Login")} className="cursor-pointer hover:text-black">
-            Login Here
-          </p>
-        )}
-      </div>
+        </div>
 
-      <button className="bg-black text-white font-light px-8 py-2 mt-4 active:bg-gray-700 transition-colors">
-        {currentState === "Login" ? "Sign In" : "Sign Up"}
-      </button>
-    </form>
+        {/* --- Form Section --- */}
+        <form onSubmit={onSubmitHandler} className="space-y-4">
+          
+          {currentState === "Sign Up" && (
+            <div className="relative group">
+              <Input
+                required
+                type="text"
+                placeholder="Full Name"
+                className="pl-10 h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white transition-all duration-300"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+              />
+              <User className="absolute left-3.5 top-4 w-4 h-4 text-zinc-400 group-focus-within:text-black transition-colors" />
+            </div>
+          )}
+
+          <div className="relative group">
+            <Input
+              required
+              type="email"
+              placeholder="Email address"
+              className="pl-10 h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white transition-all duration-300"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            <Mail className="absolute left-3.5 top-4 w-4 h-4 text-zinc-400 group-focus-within:text-black transition-colors" />
+          </div>
+
+          <div className="relative group">
+            <Input
+              required
+              type="password"
+              placeholder="Password"
+              className="pl-10 h-12 rounded-xl border-zinc-100 bg-zinc-50/50 focus:bg-white transition-all duration-300"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+            <Lock className="absolute left-3.5 top-4 w-4 h-4 text-zinc-400 group-focus-within:text-black transition-colors" />
+          </div>
+
+          {/* --- Bottom Links --- */}
+          <div className="flex items-center justify-between px-1 text-[10px] font-bold uppercase tracking-[0.1em] text-zinc-400">
+            <p className="cursor-pointer hover:text-black transition-colors">Forgot Password?</p>
+            {currentState === "Login" ? (
+              <p onClick={() => setCurrentState("Sign Up")} className="cursor-pointer hover:text-black transition-colors">
+                Create Account
+              </p>
+            ) : (
+              <p onClick={() => setCurrentState("Login")} className="cursor-pointer hover:text-black transition-colors">
+                Login Here
+              </p>
+            )}
+          </div>
+
+          {/* --- Submit Button --- */}
+          <Button 
+            disabled={loading}
+            className="w-full h-12 rounded-full bg-black text-white hover:bg-zinc-800 transition-all font-bold text-[10px] tracking-[0.3em] group"
+          >
+            {loading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <span className="flex items-center gap-2">
+                {currentState === "Login" ? "SIGN IN" : "SIGN UP"}
+                <ArrowRight className="w-3 h-3 group-hover:translate-x-1 transition-transform" />
+              </span>
+            )}
+          </Button>
+        </form>
+      </div>
+    </div>
   );
 };
 
