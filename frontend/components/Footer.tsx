@@ -28,9 +28,9 @@ const Footer = () => {
             <h4 className="text-sm font-semibold text-zinc-950 uppercase tracking-wider">Company</h4>
             <ul className="space-y-4 text-sm text-zinc-500">
               <li><Link href="/" className="hover:text-zinc-900 transition-colors">Home</Link></li>
-              <li><Link href="/about" className="hover:text-zinc-900 transition-colors">About us</Link></li>
-              <li><Link href="/delivery" className="hover:text-zinc-900 transition-colors">Delivery</Link></li>
-              <li><Link href="/privacy" className="hover:text-zinc-900 transition-colors">Privacy Policy</Link></li>
+              <li><Link href="/collection" className="hover:text-zinc-900 transition-colors">Collection</Link></li>
+              <li><Link href="/about" className="hover:text-zinc-900 transition-colors">About</Link></li>
+              <li><Link href="/contact" className="hover:text-zinc-900 transition-colors">Contact</Link></li>
             </ul>
           </div>
 
