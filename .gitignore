@@ -5,21 +5,20 @@ node_modules/
 dist/
 dist-ssr/
 build/
+.next/       # 🟢 Added: Next.js build output (don't push this!)
+out/         # 🟢 Added: Static exports
 
 # =========================
 # 2. Environment Variables
 # =========================
 .env
 .env.*
-!.env.example # (It's good practice to keep an example template)
+!.env.example
 
 # =========================
-# 3. Testing (Playwright)
+# 3. Deployment (Vercel)
 # =========================
-test-results/
-playwright-report/
-blob-report/
-playwright/.cache/
+.vercel      # 🟢 Added: Local Vercel project linking data
 
 # =========================
 # 4. OS & Editor Junk

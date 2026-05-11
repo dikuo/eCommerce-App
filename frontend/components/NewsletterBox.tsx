@@ -1,11 +1,14 @@
+'use client'; // Required for event handlers like onSubmit
+
 import { FormEvent } from "react";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
+import { Input } from "@/components/ui/input"; // Updated path alias
+import { Button } from "@/components/ui/button"; // Updated path alias
 
 const NewsletterBox = () => {
   const onSubmitHandler = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // Logic for newsletter subscription goes here
+    // Logic for newsletter subscription goes here (e.g., calling your Node.js API)
+    console.log("Subscription request received");
   };
 
   return (
@@ -35,7 +38,7 @@ const NewsletterBox = () => {
           />
           <Button 
             type="submit" 
-            className="h-12 px-8 uppercase tracking-widest text-[10px] sm:text-xs font-bold rounded-full transition-all hover:scale-[1.02] active:scale-95"
+            className="h-12 px-8 uppercase tracking-widest text-[10px] sm:text-xs font-bold rounded-full transition-all hover:scale-[1.02] active:scale-95 bg-black text-white"
           >
             Subscribe
           </Button>
