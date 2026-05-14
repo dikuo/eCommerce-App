@@ -13,12 +13,21 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: lts/*
-    - name: Install dependencies
-      run: npm ci
+
+    # 🟢 FIX 1: Install dependencies inside the frontend folder
+    - name: Install frontend dependencies
+      run: npm ci --prefix frontend
+
+    # 🟢 FIX 2: Build the project (Required for 'npm run start')
+    - name: Build frontend
+      run: npm run build --prefix frontend
+
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
+
     - name: Run Playwright tests
       run: npx playwright test
+
     - uses: actions/upload-artifact@v4
       if: ${{ !cancelled() }}
       with:
