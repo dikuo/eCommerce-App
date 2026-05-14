@@ -1,7 +1,7 @@
 name: Playwright Tests
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, feature/nextjs-migration ] # Added your current branch
   pull_request:
     branches: [ main, master ]
 jobs:
@@ -13,13 +13,18 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: lts/*
+        cache: 'npm' # Speeds up future runs
 
-    # 🟢 FIX 1: Install dependencies inside the frontend folder
-    - name: Install frontend dependencies
-      run: npm ci --prefix frontend
+    # 🟢 STEP 1: Install EVERYTHING (Root + Frontend)
+    # This works if you set up "workspaces" in your root package.json
+    - name: Install dependencies
+      run: npm install 
 
-    # 🟢 FIX 2: Build the project (Required for 'npm run start')
+    # 🟢 STEP 2: Build the frontend
     - name: Build frontend
+      env:
+        # NOTE: Ensure this secret is added to GitHub Settings > Secrets > Actions
+        NEXT_PUBLIC_BACKEND_URL: ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
       run: npm run build --prefix frontend
 
     - name: Install Playwright Browsers
