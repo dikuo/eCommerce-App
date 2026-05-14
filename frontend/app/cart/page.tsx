@@ -1,7 +1,7 @@
 'use client';
 
-import { useContext, useEffect, useState } from "react";
-import { ShopContext } from "@/context/ShopContext";
+import { useEffect, useState, useMemo } from "react";
+import { useShop } from "@/context/ShopContext";
 import Title from "@/components/Title";
 import CartTotal from "@/components/CartTotal";
 import Image from "next/image";
@@ -9,17 +9,35 @@ import { useRouter } from "next/navigation";
 import { Trash2, Minus, Plus, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import axios from "axios";
+import type { Product } from "@shared/types";
 
 const Cart = () => {
-  const { products, currency, cartItems, updateQuantity } = useContext(ShopContext);
+  // 1. Removed 'products' from context; added 'backendUrl'
+  const { currency, cartItems, updateQuantity, backendUrl } = useShop();
+  
+  const [products, setProducts] = useState<Product[]>([]); // 🟢 Local product state
   const [cartData, setCartData] = useState<any[]>([]);
   const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
 
+  // 2. Fetch products locally on mount
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get(`${backendUrl}/api/product/list`);
+        if (response.data.success) {
+          setProducts(response.data.products);
+        }
+      } catch (error) {
+        console.error("Cart sync error:", error);
+      }
+    };
+    fetchProducts();
+  }, [backendUrl]);
 
+  // 3. Transform cartItems into a flat list for rendering
   useEffect(() => {
     if (products.length > 0) {
       const tempData = [];
@@ -38,9 +56,20 @@ const Cart = () => {
     }
   }, [cartItems, products]);
 
+  // 4. Calculate Subtotal locally to pass to CartTotal
+  const subtotal = useMemo(() => {
+    let total = 0;
+    cartData.forEach((item) => {
+      const product = products.find((p) => p._id === item.productId);
+      if (product) {
+        total += product.price * item.quantity;
+      }
+    });
+    return total;
+  }, [cartData, products]);
+
   if (!isMounted) return null;
 
-  // 🟢 Empty Cart State
   if (cartData.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] gap-6 text-center">
@@ -67,17 +96,14 @@ const Cart = () => {
         <Title text1={"YOUR"} text2={"BAG"} />
       </div>
 
-      {/* ... inside your Cart component mapping ... */}
-      <div className="space-y-2"> {/* 🟢 Reduced from space-y-8 */}
+      <div className="space-y-2">
         {cartData.map((item, index) => {
           const productData = products.find((product) => product._id === item.productId);
           if (!productData) return null;
 
           return (
             <div key={`${item.productId}-${item.size}`} className="group">
-              <div className="flex flex-col sm:flex-row items-center gap-6 py-4"> {/* 🟢 Reduced from pb-8 to py-4 */}
-
-                {/* 1. Image Container (Slightly smaller for compactness) */}
+              <div className="flex flex-col sm:flex-row items-center gap-6 py-4">
                 <div className="relative w-24 h-28 bg-zinc-50 rounded-xl overflow-hidden border border-zinc-100 flex-shrink-0">
                   <Image
                     fill
@@ -88,7 +114,6 @@ const Cart = () => {
                   />
                 </div>
 
-                {/* 2. Product Info */}
                 <div className="flex-1 space-y-1 text-center sm:text-left">
                   <h3 className="text-sm font-bold text-black uppercase tracking-tight">
                     {productData.name}
@@ -101,7 +126,6 @@ const Cart = () => {
                   </div>
                 </div>
 
-                {/* 3. Controls (Tightened gap) */}
                 <div className="flex items-center gap-6">
                   <div className="flex items-center border border-zinc-200 rounded-full bg-white px-2 py-1">
                     <button
@@ -133,10 +157,11 @@ const Cart = () => {
         })}
       </div>
 
-      {/* ... Summary Section ... */}
       <div className="flex justify-end mt-12 mb-20">
         <div className="w-full sm:w-[400px]">
-          <CartTotal />
+          {/* 🟢 Passing the locally calculated subtotal */}
+          <CartTotal subtotal={subtotal} />
+          
           <div className="mt-8">
             <Button
               onClick={() => router.push("/place-order")}
@@ -144,8 +169,6 @@ const Cart = () => {
             >
               PROCEED TO CHECKOUT
             </Button>
-
-            {/* 🟢 Corrected Logic: Since fee is constant, we confirm it's included */}
             <p className="text-center text-[10px] text-zinc-400 mt-4 font-medium uppercase tracking-widest">
               Standard flat-rate shipping applied
             </p>

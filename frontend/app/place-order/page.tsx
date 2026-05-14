@@ -1,12 +1,12 @@
 'use client';
 
-import { useContext, useState, useEffect, type ChangeEvent, type FormEvent } from "react";
+import {  useState, useEffect, useMemo, type ChangeEvent, type FormEvent } from "react";
 import Title from "@/components/Title";
 import CartTotal from "@/components/CartTotal";
 import { assets } from "@/assets/assets";
-import { ShopContext } from "@/context/ShopContext";
+import { useShop } from "@/context/ShopContext";
 import axios from "axios";
-import { toast } from "sonner"; // 🟢 Switched to Sonner
+import { toast } from "sonner";
 import type { Product } from "@shared/types";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -41,10 +41,10 @@ type OrderResponse = {
 const PlaceOrder = () => {
   const [method, setMethod] = useState("cod");
   const [isMounted, setIsMounted] = useState(false);
+  const [products, setProducts] = useState<Product[]>([]); // 🟢 Local state for products
   const router = useRouter();
 
-  const { backendUrl, token, cartItems, setCartItems, getCartAmount, delivery_fee, products } =
-    useContext(ShopContext);
+  const { backendUrl, token, cartItems, setCartItems, delivery_fee } = useShop();
 
   const [formData, setFormData] = useState<AddressFormData>({
     firstName: "",
@@ -58,9 +58,38 @@ const PlaceOrder = () => {
     phone: "",
   });
 
+  // 1. Fetch products locally on mount for checkout accuracy
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get(`${backendUrl}/api/product/list`);
+        if (response.data.success) {
+          setProducts(response.data.products);
+        }
+      } catch (error) {
+        console.error(error);
+        toast.error("Checkout Sync Error", { description: "Unable to verify product prices." });
+      }
+    };
+    fetchProducts();
+  }, [backendUrl]);
+
+  // 2. Calculate subtotal locally based on the fetched products
+  const subtotal = useMemo(() => {
+    let total = 0;
+    for (const itemId in cartItems) {
+      const itemInfo = products.find((p) => p._id === itemId);
+      if (itemInfo) {
+        for (const size in cartItems[itemId]) {
+          if (cartItems[itemId][size] > 0) {
+            total += itemInfo.price * cartItems[itemId][size];
+          }
+        }
+      }
+    }
+    return total;
+  }, [cartItems, products]);
 
   const onChangeHandler = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -71,14 +100,19 @@ const PlaceOrder = () => {
     e.preventDefault();
 
     try {
-      const orderItems: OrderProduct[] = [];
+      const orderItems: any[] = [];
 
-      for (const items in cartItems) {
-        for (const item in cartItems[items]) {
-          if (cartItems[items][item] > 0) {
-            const itemInfo = products.find((product) => product._id === items);
+      // Structure the order items from the cart
+      for (const itemId in cartItems) {
+        for (const size in cartItems[itemId]) {
+          if (cartItems[itemId][size] > 0) {
+            const itemInfo = products.find((p) => p._id === itemId);
             if (itemInfo) {
-              orderItems.push({ ...itemInfo, size: item, quantity: cartItems[items][item] });
+              orderItems.push({
+                ...itemInfo,
+                size: size,
+                quantity: cartItems[itemId][size]
+              });
             }
           }
         }
@@ -87,23 +121,24 @@ const PlaceOrder = () => {
       const orderData = {
         address: formData,
         items: orderItems,
-        amount: getCartAmount() + delivery_fee,
+        amount: subtotal + delivery_fee, // Subtotal + Shipping
       };
 
       if (!token) {
-        toast.error("Session Expired", { description: "Please login to complete your order." });
+        toast.error("Authentication Required", { description: "Please sign in to place your order." });
         return;
       }
 
+      // --- Payment Method Routing ---
       switch (method) {
         case "cod": {
-          const response = await axios.post<OrderResponse>(backendUrl + "/api/order/place", orderData, {
+          const response = await axios.post<OrderResponse>(`${backendUrl}/api/order/place`, orderData, {
             headers: { token },
           });
           if (response.data.success) {
             setCartItems({});
             router.push("/orders");
-            toast.success("Order Placed", { description: "Thank you for shopping with CaraStyle." });
+            toast.success("Order Successful", { description: "Your order has been placed via Cash on Delivery." });
           } else {
             toast.error(response.data.message);
           }
@@ -111,38 +146,38 @@ const PlaceOrder = () => {
         }
 
         case "stripe": {
-          const responseStripe = await axios.post<OrderResponse>(backendUrl + "/api/order/stripe", orderData, {
+          const response = await axios.post<OrderResponse>(`${backendUrl}/api/order/stripe`, orderData, {
             headers: { token },
           });
-          if (responseStripe.data.success && responseStripe.data.session_url) {
-            window.location.replace(responseStripe.data.session_url);
+          if (response.data.success && response.data.session_url) {
+            window.location.replace(response.data.session_url);
           } else {
-            toast.error(responseStripe.data.message);
+            toast.error(response.data.message);
           }
           break;
         }
 
         case "paypal": {
-          const responsePaypal = await axios.post<OrderResponse>(backendUrl + "/api/order/paypal", orderData, {
+          const response = await axios.post<OrderResponse>(`${backendUrl}/api/order/paypal`, orderData, {
             headers: { token },
           });
-          if (responsePaypal.data.success && responsePaypal.data.approval_url) {
-            window.location.replace(responsePaypal.data.approval_url);
+          if (response.data.success && response.data.approval_url) {
+            window.location.replace(response.data.approval_url);
           } else {
-            toast.error(responsePaypal.data.message);
+            toast.error(response.data.message);
           }
           break;
         }
       }
     } catch (error) {
       console.error(error);
-      toast.error("Checkout Error", { description: "Something went wrong. Please try again." });
+      toast.error("Checkout Failure", { description: "We could not process your request. Please try again." });
     }
   };
 
   if (!isMounted) return null;
 
-  // Reusable Input Component for cleaner code
+  // Reusable Form Input
   const InputField = (props: React.InputHTMLAttributes<HTMLInputElement>) => (
     <input
       {...props}
@@ -181,10 +216,12 @@ const PlaceOrder = () => {
         <InputField name="phone" type="number" value={formData.phone} onChange={onChangeHandler} placeholder="Phone number" />
       </div>
 
-      {/* --- Right Side: Summary & Payment --- */}
+      {/* --- Right Side: Order Summary & Payment --- */}
       <div className="flex-1 lg:max-w-[450px]">
         <div className="bg-zinc-50/50 p-8 rounded-3xl border border-zinc-100 shadow-sm">
-          <CartTotal />
+          
+          {/* 🟢 Passing the local subtotal to CartTotal */}
+          <CartTotal subtotal={subtotal} />
           
           <div className="mt-12 space-y-6">
             <div className="flex items-center gap-2 mb-4">
@@ -193,7 +230,7 @@ const PlaceOrder = () => {
             </div>
 
             <div className="grid grid-cols-1 gap-3">
-              {/* Stripe */}
+              {/* Payment Methods Logic remains consistent */}
               <div 
                 onClick={() => setMethod("stripe")} 
                 className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${
@@ -210,7 +247,6 @@ const PlaceOrder = () => {
                 </div>
               </div>
 
-              {/* PayPal */}
               <div 
                 onClick={() => setMethod("paypal")} 
                 className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${
@@ -227,7 +263,6 @@ const PlaceOrder = () => {
                 </div>
               </div>
 
-              {/* COD */}
               <div 
                 onClick={() => setMethod("cod")} 
                 className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${
@@ -253,7 +288,7 @@ const PlaceOrder = () => {
               </Button>
               <div className="flex items-center justify-center gap-2 mt-6 text-zinc-400">
                 <Truck className="w-4 h-4" />
-                <p className="text-[10px] font-bold uppercase tracking-widest">Flat-rate shipping included</p>
+                <p className="text-[10px] font-bold uppercase tracking-widest">Secure Checkout Powered by CaraStyle</p>
               </div>
             </div>
           </div>

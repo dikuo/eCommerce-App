@@ -1,57 +1,41 @@
 name: Playwright Tests
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, feature/nextjs-migration ] # Added your current branch
   pull_request:
     branches: [ main, master ]
-
 jobs:
   test:
     timeout-minutes: 60
     runs-on: ubuntu-latest
-    
-    defaults:
-      run:
-        working-directory: ./frontend 
-
     steps:
     - uses: actions/checkout@v4
-    
     - uses: actions/setup-node@v4
       with:
-        node-version: 20
-        cache: 'npm'
-        # Point cache to the frontend lockfile
-        cache-dependency-path: frontend/package-lock.json
+        node-version: lts/*
+        cache: 'npm' # Speeds up future runs
 
-    - name: Install Frontend dependencies
-      run: npm install
+    # 🟢 STEP 1: Install EVERYTHING (Root + Frontend)
+    # This works if you set up "workspaces" in your root package.json
+    - name: Install dependencies
+      run: npm install 
 
-    - name: Install Backend dependencies
-      # We move up one level to reach the backend folder
-      run: |
-        cd ../backend
-        npm install
+    # 🟢 STEP 2: Build the frontend
+    - name: Build frontend
+      env:
+        # NOTE: Ensure this secret is added to GitHub Settings > Secrets > Actions
+        NEXT_PUBLIC_BACKEND_URL: ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
+      run: npm run build --prefix frontend
 
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
 
-    - name: Run Backend and Frontend
-      env:
-        # These MUST match the names you typed in the GitHub Settings page
-        STRIPE_SECRET_KEY: ${{ secrets.STRIPE_SECRET_KEY }}
-        MONGODB_URI: ${{ secrets.MONGODB_URI }}
-        # Add any others you uploaded (JWT_SECRET, etc.)
-        VITE_BACKEND_URL: ${{ secrets.VITE_BACKEND_URL }}
-      run: |
-        cd ../backend && npm start & 
-        npm run dev & 
-        npx wait-on http://localhost:4000 http://localhost:5173 --timeout 60000
-        npx playwright test
-        
+    - name: Run Playwright tests
+      run: npx playwright test
+
     - uses: actions/upload-artifact@v4
-      if: always()
+      if: ${{ !cancelled() }}
       with:
         name: playwright-report
-        path: frontend/playwright-report/
+        path: playwright-report/
         retention-days: 30

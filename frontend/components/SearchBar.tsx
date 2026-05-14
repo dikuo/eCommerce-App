@@ -1,12 +1,12 @@
 'use client';
 
-import { useContext, useEffect, type ChangeEvent } from "react";
-import { ShopContext } from "@/context/ShopContext";
+import { useEffect, type ChangeEvent } from "react";
+import { useShop } from "@/context/ShopContext";
 import { usePathname } from "next/navigation";
 import { Search, X } from "lucide-react";
 
 const SearchBar = () => {
-  const { search, setSearch, showSearch, setShowSearch } = useContext(ShopContext);
+  const { search, setSearch, showSearch, setShowSearch } = useShop();
   const pathname = usePathname();
 
   const isCollectionPage = pathname.includes("collection");
