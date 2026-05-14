@@ -1,7 +1,5 @@
 "use client";
 
-import { useContext } from "react";
-import { ShopContext } from "@/context/ShopContext";
 import { assets } from "@/assets/assets";
 
 // 🟢 Premium Shadcn & Lucide Imports
@@ -20,9 +18,10 @@ import {
 
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
+import { useShop } from "@/context/ShopContext";
 
 const Navbar = () => {
-  const { setShowSearch, getCartCount, token, setToken, setCartItems } = useContext(ShopContext);
+  const { setShowSearch, getCartCount, token, setToken, setCartItems } = useShop();
   const router = useRouter();
   const pathname = usePathname();
 

@@ -1,14 +1,14 @@
 'use client';
 
-import { useContext, useEffect, Suspense } from "react";
-import { ShopContext } from "@/context/ShopContext";
+import { useEffect, Suspense } from "react";
+import { useShop } from "@/context/ShopContext";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import { toast } from "react-toastify";
 
 // We separate the logic into a sub-component so we can wrap it in <Suspense>
 const VerifyLogic = () => {
-  const { token, setCartItems, backendUrl } = useContext(ShopContext);
+  const { token, setCartItems, backendUrl } = useShop();
   const router = useRouter();
   const searchParams = useSearchParams();
 

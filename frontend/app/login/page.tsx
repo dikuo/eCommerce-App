@@ -1,7 +1,7 @@
 'use client';
 
-import { useContext, useEffect, useState, type ChangeEvent, type FormEvent } from "react";
-import { ShopContext } from "@/context/ShopContext";
+import { useEffect, useState, type FormEvent } from "react";
+import { useShop } from "@/context/ShopContext";
 import axios from "axios";
 import { toast } from "sonner"; // Switched to Sonner for that cleaner premium look
 import { useRouter } from "next/navigation";
@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 
 const Login = () => {
   const [currentState, setCurrentState] = useState("Login");
-  const { token, setToken, backendUrl } = useContext(ShopContext);
+  const { token, setToken, backendUrl } = useShop();
   const router = useRouter();
 
   const [name, setName] = useState("");

@@ -1,7 +1,7 @@
 'use client';
 
 import { useContext, useEffect, useState } from "react";
-import { ShopContext } from "@/context/ShopContext";
+import { useShop } from "@/context/ShopContext";
 import Title from "@/components/Title";
 import ProductItem from "@/components/ProductItem";
 import type { Product } from "@shared/types";
@@ -13,7 +13,7 @@ interface RelatedProductsProps {
 }
 
 const RelatedProducts = ({ category, subCategory, currentProductId }: RelatedProductsProps) => {
-  const { products } = useContext(ShopContext);
+  const { products } = useShop();
   const [related, setRelated] = useState<Product[]>([]);
 
   useEffect(() => {
@@ -50,10 +50,7 @@ const RelatedProducts = ({ category, subCategory, currentProductId }: RelatedPro
         {related.map((item) => (
           <ProductItem 
             key={item._id} 
-            id={item._id} 
-            name={item.name} 
-            price={item.price} 
-            image={item.image} 
+            product={item}
           />
         ))}
       </div>

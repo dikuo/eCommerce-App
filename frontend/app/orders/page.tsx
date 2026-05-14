@@ -1,12 +1,12 @@
 'use client';
 
-import { useContext, useEffect, useState } from "react";
-import { ShopContext } from "@/context/ShopContext";
+import { useEffect, useState } from "react";
+import {  useShop } from "@/context/ShopContext";
 import Title from "@/components/Title";
 import axios from "axios";
 import type { Order } from "@shared/types";
 import Image from "next/image";
-import { Package, Truck, CheckCircle2, RefreshCw, ChevronRight } from "lucide-react";
+import { RefreshCw, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // --- Interfaces ---
@@ -24,7 +24,7 @@ interface OrderItemWithStatus {
 }
 
 const Orders = () => {
-  const { backendUrl, token, currency } = useContext(ShopContext);
+  const { backendUrl, token, currency } = useShop();
   const [orderData, setOrderData] = useState<OrderItemWithStatus[]>([]);
   const [isMounted, setIsMounted] = useState(false);
   const [loading, setLoading] = useState(false);

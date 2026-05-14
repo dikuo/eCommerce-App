@@ -1,13 +1,13 @@
 'use client';
 
 import { useContext } from "react";
-import { ShopContext } from "@/context/ShopContext";
+import { useShop } from "@/context/ShopContext";
 import { useRouter } from "next/navigation";
 import { X, ShoppingBag } from "lucide-react";
 import Image from "next/image";
 
 const QuickViewModal = () => {
-  const { selectedProduct, setSelectedProduct, currency, addToCart } = useContext(ShopContext);
+  const { selectedProduct, setSelectedProduct, currency, addToCart } = useShop();
   const router = useRouter();
 
   if (!selectedProduct) return null;

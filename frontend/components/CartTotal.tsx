@@ -1,13 +1,13 @@
+// components/CartTotal.tsx
 "use client";
 
-import { useContext } from "react";
-import { ShopContext } from "@/context/ShopContext";
+import { useShop } from "@/context/ShopContext";
 import Title from "@/components/Title";
 
-const CartTotal = () => {
-  const { currency, delivery_fee, getCartAmount } = useContext(ShopContext);
+// 🟢 Accept subtotal as a prop
+const CartTotal = ({ subtotal }: { subtotal: number }) => {
+  const { currency, delivery_fee } = useShop();
 
-  const subtotal = getCartAmount();
   const total = subtotal === 0 ? 0 : subtotal + Number(delivery_fee);
 
   return (

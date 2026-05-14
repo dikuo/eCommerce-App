@@ -1,26 +1,13 @@
-"use client";
-
-import React, { useContext, useEffect, useState } from 'react';
-import { ShopContext } from '@/context/ShopContext';
+// components/BestSeller.tsx
+import React from 'react';
 import ProductItem from '@/components/ProductItem';
 import { Product } from '@shared/types';
 import Link from 'next/link';
 
-const BestSeller: React.FC = () => {
-  const { products } = useContext(ShopContext);
-  const [bestSeller, setBestSeller] = useState<Product[]>([]);
-
-  useEffect(() => {
-    if (products && products.length > 0) {
-      const bestProduct = products.filter((item: Product) => item.bestseller);
-      setBestSeller(bestProduct.slice(0, 5));
-    }
-  }, [products]);
-
+// 🟢 Accept pre-filtered products as a prop
+const BestSeller = ({ products }: { products: Product[] }) => {
   return (
     <section className="py-8 sm:py-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-
-      {/* Refined Understated Header */}
       <div className='flex flex-col items-center text-center space-y-3 mb-12'>
         <h2 className='text-2xl sm:text-3xl font-bold tracking-tight text-zinc-950 uppercase'>
           The <span className='text-zinc-400'>Bestsellers</span>
@@ -30,20 +17,15 @@ const BestSeller: React.FC = () => {
         </p>
       </div>
 
-      {/* Premium Product Grid */}
       <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-x-4 gap-y-10 sm:gap-x-6 sm:gap-y-12'>
-        {bestSeller.map((item: Product) => (
+        {products.map((item: Product) => (
           <ProductItem
             key={item._id}
-            id={item._id}
-            name={item.name}
-            image={item.image}
-            price={item.price}
+            product={item}
           />
         ))}
       </div>
 
-      {/* View All Button */}
       <div className="mt-16 flex justify-center">
         <Link
           href="/collection"
@@ -52,7 +34,6 @@ const BestSeller: React.FC = () => {
           Explore All
         </Link>
       </div>
-
     </section>
   );
 }
