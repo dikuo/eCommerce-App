@@ -7,23 +7,28 @@ export const revalidate = 60;
 
 // 🟢 Tell Next.js which product IDs exist at build time
 export async function generateStaticParams() {
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-  const res = await fetch(`${backendUrl}/api/product/list`);
-  const data = await res.json();
+  try {
+    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+    const res = await fetch(`${backendUrl}/api/product/list`);
+    const data = await res.json();
 
-  if (!data.success) return [];
+    if (!data.success) return [];
 
-  return data.products.map((product: any) => ({
-    productId: product._id,
-  }));
+    return data.products.map((product: any) => ({
+      productId: product._id,
+    }));
+  } catch (error) {
+    console.log("⚠️ Backend not reachable during build. Skipping static generation.");
+    return []; // Return empty list so the build continues
+  }
 }
 
-export default async function Page({ 
-  params 
-}: { 
-  params: Promise<{ productId: string }> 
+export default async function Page({
+  params
+}: {
+  params: Promise<{ productId: string }>
 }) {
-  const { productId } = await params; 
+  const { productId } = await params;
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
   const url = `${backendUrl}/api/product/single`;

@@ -1,0 +1,23 @@
+version: '3.8'
+
+services:
+  inventory-service:
+    build: ./services/inventory-go
+    # Injects everything, but Go only uses what it needs (MongoDB)
+    env_file:
+      - ./backend/.env
+    ports:
+      - "8081:8080" # Host 8081 -> Container 8080
+
+  backend:
+    build: ./backend
+    env_file:
+      - ./backend/.env
+    ports:
+      - "8080:4000" # Host 8080 -> Container 4000
+    environment:
+      # We override this here because your .env probably says 'localhost'
+      # Inside the 'whale' (Docker), the backend must use the service name.
+      - INVENTORY_SERVICE_URL=http://inventory-service:8080
+    depends_on:
+      - inventory-service
