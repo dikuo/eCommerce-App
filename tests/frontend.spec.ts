@@ -2,6 +2,45 @@ import { test, expect } from '@playwright/test';
 
 const BASE_URL = 'http://localhost:3000';
 
+// 🟢 Deterministic mock catalog shared between build states and browser intercept engines
+const ciMockProducts = [
+  {
+    _id: "660d1a2b3c4d5e6f7a8b9c01",
+    name: "Classic Crimson Hoodie",
+    description: "Premium weight cotton blend overhead hoodie.",
+    price: 85,
+    image: ["https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=600"],
+    category: "Men",
+    subCategory: "Topwear",
+    sizes: ["S", "M", "L", "XL"],
+    bestseller: true,
+    date: 1715731200000
+  },
+  {
+    _id: "660d1a2b3c4d5e6f7a8b9c02",
+    name: "Midnight Bomber Jacket",
+    description: "Water-resistant satin finish bomber jacket.",
+    price: 120,
+    image: ["https://images.unsplash.com/photo-1551028719-00167b16eac5?q=80&w=600"],
+    category: "Men",
+    subCategory: "Outerwear",
+    sizes: ["M", "L", "XL"],
+    bestseller: true,
+    date: 1715731200000
+  },
+  {
+    _id: "660d1a2b3c4d5e6f7a8b9c03",
+    name: "Minimalist Knit Sweater",
+    description: "Soft merino wool blend crewneck sweater.",
+    price: 95,
+    image: ["https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?q=80&w=600"],
+    category: "Women",
+    subCategory: "Topwear",
+    sizes: ["XS", "S", "M", "L"],
+    bestseller: false,
+    date: 1715731200000
+  }
+];
 /**
  * E-commerce UI Professional Suite
  * * Strategy:
@@ -13,41 +52,56 @@ const BASE_URL = 'http://localhost:3000';
 test.describe('E-commerce UI Professional Suite', () => {
 
   test.beforeEach(async ({ page }) => {
-    // 🟢 Global CI Network Interceptor Layer
-    // 1. Mock the Single Product Fetch API (resolves dynamic page state hydration)
-    await page.route('**/api/product/single', async (route) => {
+    
+    // 1. 🟢 Mock the main product catalog endpoint to feed browser view grids
+    await page.route('**/api/product/list', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({
           success: true,
-          product: {
-            _id: "660d1a2b3c4d5e6f7a8b9c01",
-            name: "Classic Crimson Hoodie",
-            price: 85,
-            image: ["https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=600"],
-            sizes: ["S", "M", "L", "XL"], // Explicitly provides the sizes expected by assertions
-            category: "Men",
-            subCategory: "Topwear",
-            description: "Automated pipeline validation placeholder entry"
-          }
+          products: ciMockProducts
         })
       });
     });
 
-    // 2. Mock Cart Modification Routes (resolves button transformation & header badge counters)
+    // 2. 🟢 Mock the detailed product locator route (dynamically extracts the requested ID payload)
+    await page.route('**/api/product/single', async (route) => {
+      const request = route.request();
+      let product = ciMockProducts[0];
+      
+      try {
+        const postData = request.postDataJSON();
+        if (postData && postData.productId) {
+          product = ciMockProducts.find(p => p._id === postData.productId) || ciMockProducts[0];
+        }
+      } catch (e) {
+        // Graceful fallback to head item if data stream parsing is blank
+      }
+
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          product
+        })
+      });
+    });
+
+    // 3. 🟢 Mock Cart Action Requests (resolves button conversions and badge tracking indicators)
     await page.route('**/api/cart/*', async (route) => {
       await route.fulfill({
         status: 200,
         contentType: 'application/json',
         body: JSON.stringify({ 
           success: true, 
-          message: "Item modified in cart successfully" 
+          message: "Item verified and updated inside test cart context" 
         })
       });
     });
 
-    // Navigate to base URL after setting up the routes
+    // Fire initial entry point setup
     await page.goto(BASE_URL);
   });
 

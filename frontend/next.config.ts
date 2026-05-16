@@ -42,7 +42,11 @@ const nextConfig: NextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'res.cloudinary.com',
+        hostname: 'res.cloudinary.com',  // Production asset engine
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com', // CI pipeline test images
       },
       {
         // Allow optimization of assets fetched from local development tunnel

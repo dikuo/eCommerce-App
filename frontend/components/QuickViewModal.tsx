@@ -43,6 +43,8 @@ const QuickViewModal = () => {
             alt={selectedProduct.name} 
             fill 
             className="object-cover"
+            unoptimized
+            priority
           />
         </div>
 
