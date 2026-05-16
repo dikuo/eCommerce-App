@@ -7,7 +7,8 @@
   "scripts": {
     "start": "node server.js",
     "server": "nodemon server.js",
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watchAll --runInBand"
+    "test": "cross-env STRIPE_SECRET_KEY=sk_test_dummy_mock_key PAYPAL_CLIENT_ID=mock_paypal_id node --experimental-vm-modules node_modules/jest/bin/jest.js --runInBand",
+    "test:watch": "npm test -- --watchAll"
   },
   "author": "",
   "license": "ISC",
