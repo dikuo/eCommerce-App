@@ -8,12 +8,16 @@ export const revalidate = 60;
 // 🪐 Smart Router: Determines the correct URL pathway based on where the code executes
 const getBackendUrl = () => {
   const isServer = typeof window === 'undefined';
-  const isInsideK8sPod = isServer && process.env.KUBERNETES_SERVICE_HOST;
+  
+  if (isServer) {
+    // Server-side / Build-time internal routing path
+    return process.env.KUBERNETES_SERVICE_HOST 
+      ? "http://backend-service:8080" 
+      : (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080");
+  }
 
-  // If inside the pod, route internally. Otherwise, use the standard env config.
-  return isInsideK8sPod 
-    ? "http://backend-service:8080" 
-    : process.env.NEXT_PUBLIC_BACKEND_URL;
+  // 🟢 Client-side (Browser): Return empty string so requests use relative paths like /api/product/...
+  return "";
 };
 
 // 🟢 Tell Next.js which product IDs exist at build time

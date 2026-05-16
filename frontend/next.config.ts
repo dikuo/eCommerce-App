@@ -14,6 +14,15 @@ const nextConfig: NextConfig = {
     return [
       {
         /**
+         * 🟢 Unified Core API Rewrite Proxy
+         * Catches browser-side relative fetches (/api/...) and pipes them 
+         * directly over internal network lines to your backend microservice.
+         */
+        source: '/api/:path*',
+        destination: `${BACKEND_INTERNAL_URL}/api/:path*`,
+      },
+      {
+        /**
          * 🟢 Image Optimization Rewrite Bridge
          * Intercepts relative image assets paths on the client side and 
          * safely proxies them internally via K8s DNS or local loopback.
@@ -21,12 +30,6 @@ const nextConfig: NextConfig = {
         source: '/backend-assets/:path*',
         destination: `${BACKEND_INTERNAL_URL}/:path*`,
       },
-      /* // (Legacy Vite/React fallback rule - Keep below specific asset paths)
-      {
-        source: "/:path*",
-        destination: "http://localhost:3001/:path*",
-      },
-      */
     ];
   },
 

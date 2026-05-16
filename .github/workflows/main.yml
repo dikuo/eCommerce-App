@@ -66,9 +66,14 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-playwright-
 
-      - name: Install Playwright Browsers (Only if Cache Misses)
+      # 🟢 Step A: ONLY install browser binaries if they aren't cached (saves download time)
+      - name: Install Playwright Browsers
         if: steps.playwright-cache.outputs.cache-hit != 'true'
-        run: npx playwright install --with-deps
+        run: npx playwright install
+
+      # 🟢 Step B: ALWAYS install OS system dependencies (takes ~5 seconds, prevents WebKit crashes)
+      - name: Install Playwright Operating System Dependencies
+        run: npx playwright install-deps
 
       - name: Run Playwright Test Suite (Throttled Workers)
         run: npx playwright test --workers=2

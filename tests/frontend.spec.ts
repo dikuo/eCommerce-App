@@ -1,6 +1,6 @@
 import { test, expect } from '@playwright/test';
 
-const BASE_URL = 'http://localhost:3000';
+const BASE_URL = 'http://127.0.0.1:3000';
 
 // 🟢 Deterministic mock catalog shared between build states and browser intercept engines
 const ciMockProducts = [
