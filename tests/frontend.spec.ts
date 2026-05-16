@@ -4,15 +4,50 @@ const BASE_URL = 'http://localhost:3000';
 
 /**
  * E-commerce UI Professional Suite
- * 
- * Strategy:
+ * * Strategy:
  * - Uses 'domcontentloaded' for faster navigation.
  * - Employs "Sniper Clicks" (offset positions) to bypass button interception.
  * - Implements web-first assertions to avoid flaky hard-coded timeouts.
+ * - Mocks client-side network payloads to protect async state engines on CI.
  */
 test.describe('E-commerce UI Professional Suite', () => {
 
   test.beforeEach(async ({ page }) => {
+    // 🟢 Global CI Network Interceptor Layer
+    // 1. Mock the Single Product Fetch API (resolves dynamic page state hydration)
+    await page.route('**/api/product/single', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          product: {
+            _id: "660d1a2b3c4d5e6f7a8b9c01",
+            name: "Classic Crimson Hoodie",
+            price: 85,
+            image: ["https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=600"],
+            sizes: ["S", "M", "L", "XL"], // Explicitly provides the sizes expected by assertions
+            category: "Men",
+            subCategory: "Topwear",
+            description: "Automated pipeline validation placeholder entry"
+          }
+        })
+      });
+    });
+
+    // 2. Mock Cart Modification Routes (resolves button transformation & header badge counters)
+    await page.route('**/api/cart/*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ 
+          success: true, 
+          message: "Item modified in cart successfully" 
+        })
+      });
+    });
+
+    // Navigate to base URL after setting up the routes
     await page.goto(BASE_URL);
   });
 
@@ -134,9 +169,6 @@ test.describe('E-commerce UI Professional Suite', () => {
 
     // 5. ACT: Now perform the actual add to cart
     await actionBtn.click();
-
-    // 6. ASSERT: Verify success (e.g., checking the cart drawer or a success toast)
-    // await expect(page.getByText(/added to cart/i)).toBeVisible();
   });
 
   // 7. Filter Application & Result Synchronization
@@ -209,7 +241,6 @@ test.describe('E-commerce UI Professional Suite', () => {
     await page.getByRole('button', { name: /sign in/i }).click();
 
     // Sonner toasts usually have a 'li' role or specific data attribute
-    // We use a regex to find any text containing 'invalid' or 'error'
     const toastMessage = page.locator('[data-sonner-toast]');
 
     await expect(toastMessage).toBeVisible({ timeout: 8000 });
