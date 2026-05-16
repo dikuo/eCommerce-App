@@ -4,7 +4,7 @@ import CollectionClient from './CollectionClient';
 export const revalidate = 60;
 
 export default async function Page() {
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const backendUrl = "http://backend-service:8080";
   let initialProducts = [];
 
   try {

@@ -16,7 +16,9 @@ const CollectionClient = ({ initialProducts }: { initialProducts: Product[] }) =
   const subCategoryFromURL = searchParams.get("subCategory");
 
   // 🟢 Guaranteed type-safety from useShop hook
-  const { search, showSearch } = useShop();
+  const { products, search, showSearch } = useShop();
+
+  console.log("📊 RENDER CYCLE -> Server Prop:", initialProducts?.length, " | Client Context:", products?.length);
 
   const [showFilter, setShowFilter] = useState(false);
   const [filterProducts, setFilterProducts] = useState<Product[]>(initialProducts);
@@ -44,22 +46,32 @@ const CollectionClient = ({ initialProducts }: { initialProducts: Product[] }) =
     );
   };
 
-  // Logic to apply all filters and sorting
   const applyFilter = () => {
-    let productsCopy = [...initialProducts];
+    const baseProducts = initialProducts && initialProducts.length > 0 ? initialProducts : products;
+
+    // 📊 LOG 1: See if the 50 items are actually arriving here
+    console.log("1. Base products entering filter:", baseProducts.length);
+
+    let productsCopy = [...baseProducts];
 
     if (showSearch && search) {
       productsCopy = productsCopy.filter((item) =>
         item.name.toLowerCase().includes(search.toLowerCase())
       );
+      // 📊 LOG 2: Check search filter impact
+      console.log("2. Count after Search filter:", productsCopy.length);
     }
 
     if (category.length > 0) {
       productsCopy = productsCopy.filter((item) => category.includes(item.category));
+      // 📊 LOG 3: Check category filter impact
+      console.log("3. Count after Category filter:", productsCopy.length);
     }
 
     if (subCategory.length > 0) {
       productsCopy = productsCopy.filter((item) => subCategory.includes(item.subCategory));
+      // 📊 LOG 4: Check subcategory filter impact
+      console.log("4. Count after SubCategory filter:", productsCopy.length);
     }
 
     if (sortType === "low-high") {
@@ -73,7 +85,7 @@ const CollectionClient = ({ initialProducts }: { initialProducts: Product[] }) =
 
   useEffect(() => {
     applyFilter();
-  }, [category, subCategory, search, showSearch, initialProducts, sortType]);
+  }, [category, subCategory, search, showSearch, initialProducts, products, sortType]);
 
   return (
     <div className="flex flex-col sm:flex-row gap-10 pt-12 border-t border-gray-100 items-start">

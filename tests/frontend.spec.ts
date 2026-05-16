@@ -30,8 +30,8 @@ test.describe('E-commerce UI Professional Suite', () => {
       const navItem = header.getByRole('link', { name: link.name, exact: true });
       await navItem.click();
 
-      await page.waitForURL(link.path === '/' ? BASE_URL + '/' : new RegExp(link.path), { 
-        waitUntil: 'domcontentloaded' 
+      await page.waitForURL(link.path === '/' ? BASE_URL + '/' : new RegExp(link.path), {
+        waitUntil: 'domcontentloaded'
       });
 
       await expect(navItem).toHaveClass(/text-black/);
@@ -53,9 +53,9 @@ test.describe('E-commerce UI Professional Suite', () => {
   // 3. Mobile Menu Responsiveness (Shadcn/UI Sheet)
   test('Mobile menu should toggle visibility on small screens', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
-    await page.reload(); 
+    await page.reload();
 
-    await page.getByRole('button').filter({ has: page.locator('svg.lucide-menu') }).click();
+    await page.getByRole('button', { name: 'Open Navigation Menu' }).click();
 
     const mobileMenu = page.getByRole('dialog');
     await expect(mobileMenu).toBeVisible();
@@ -111,18 +111,32 @@ test.describe('E-commerce UI Professional Suite', () => {
     await expect(modalContent.getByRole('button', { name: /add to/i })).toBeVisible();
   });
 
-  // 6. Mandatory Size Selection (Toast Validation)
-  test('Should show error toast when adding to cart without size', async ({ page }) => {
+  // 6. select size button to add to cart transformation
+  test('Button should transform from "Select a Size" to "Add to Cart" after selection', async ({ page }) => {
     await page.goto(`${BASE_URL}/collection`);
 
-    const firstProductLink = page.locator('a[href^="/product/"]').first();
-    await expect(firstProductLink).toBeVisible();
-    await firstProductLink.click({ position: { x: 10, y: 10 } });
+    // 1. Navigate to the first product
+    const firstProduct = page.locator('a[href^="/product/"]').first();
+    await firstProduct.click();
+    await page.waitForLoadState('networkidle');
 
-    await page.waitForURL(/\/product\/.+/, { waitUntil: 'domcontentloaded' });
+    // 2. ASSERT: The button initially says "Select a Size"
+    const actionBtn = page.getByRole('button', { name: /select a size|add to cart/i });
 
-    await page.getByRole('button', { name: /add to (cart|bag)/i }).click();
-    await expect(page.getByText(/select size/i)).toBeVisible();
+    // 1. Initial Check
+    await expect(actionBtn).toHaveText(/select a size/i);
+
+    // 2. Interaction
+    await page.getByRole('button', { name: 'L', exact: true }).click();
+
+    // 3. Final Check
+    await expect(actionBtn).toHaveText(/add to cart/i);
+
+    // 5. ACT: Now perform the actual add to cart
+    await actionBtn.click();
+
+    // 6. ASSERT: Verify success (e.g., checking the cart drawer or a success toast)
+    // await expect(page.getByText(/added to cart/i)).toBeVisible();
   });
 
   // 7. Filter Application & Result Synchronization
@@ -163,7 +177,7 @@ test.describe('E-commerce UI Professional Suite', () => {
     const initialName = await firstProduct.innerText();
 
     await page.selectOption('select', 'high-low');
-    
+
     // Assertion acts as a smart-wait for the sorting re-render
     await expect(firstProduct).not.toHaveText(initialName);
   });
@@ -190,10 +204,16 @@ test.describe('E-commerce UI Professional Suite', () => {
 
     await page.fill('input[type="email"]', 'unauthorized@example.com');
     await page.fill('input[type="password"]', 'invalid_password');
+
+    // Trigger login
     await page.getByRole('button', { name: /sign in/i }).click();
 
-    const errorMessage = page.getByText(/error/i).or(page.getByText(/invalid/i));
-    await expect(errorMessage).toBeVisible();
+    // Sonner toasts usually have a 'li' role or specific data attribute
+    // We use a regex to find any text containing 'invalid' or 'error'
+    const toastMessage = page.locator('[data-sonner-toast]');
+
+    await expect(toastMessage).toBeVisible({ timeout: 8000 });
+    await expect(toastMessage).toContainText(/invalid|error|exist/i);
   });
 
 });

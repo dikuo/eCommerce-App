@@ -1,7 +1,7 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, useEffect } from "react"; // 🟢 Added useEffect
+import { useState, useEffect } from "react";
 import { useShop } from "@/context/ShopContext";
 import RelatedProducts from "@/components/RelatedProducts";
 import type { Product as ProductType } from "@shared/types";
@@ -16,8 +16,6 @@ interface ExtendedProduct extends ProductType {
 const ProductClient = ({ initialProductData }: { initialProductData: ExtendedProduct }) => {
   const { currency, addToCart } = useShop();
 
-  // 🟢 1. Local State for Live Data
-  // We initialize with the ISR data so the page isn't empty on load
   const [liveStock, setLiveStock] = useState<number>(initialProductData.stock ?? 0);
   const [liveStatus, setLiveStatus] = useState<string>(initialProductData.stockStatus || "Live Status");
   const [isSyncing, setIsSyncing] = useState(true);
@@ -25,7 +23,6 @@ const ProductClient = ({ initialProductData }: { initialProductData: ExtendedPro
   const [image, setImage] = useState(initialProductData.image[0]);
   const [size, setSize] = useState("");
 
-  // 🟢 2. The Hybrid "Handshake"
   useEffect(() => {
     const fetchLiveInventory = async () => {
       try {
@@ -52,7 +49,6 @@ const ProductClient = ({ initialProductData }: { initialProductData: ExtendedPro
     fetchLiveInventory();
   }, [initialProductData._id]);
 
-  // Derived logic uses the LIVE stock now
   const isOutOfStock = liveStock <= 0;
   const isLowStock = liveStock > 0 && liveStock <= 5;
 
@@ -60,7 +56,7 @@ const ProductClient = ({ initialProductData }: { initialProductData: ExtendedPro
     <div className="pt-10 transition-all ease-in duration-500 opacity-100">
       <div className="flex gap-12 flex-col lg:flex-row">
 
-        {/* -------- Left: Product Images (Remains Same) -------- */}
+        {/* -------- Left: Product Images -------- */}
         <div className="flex-1 flex flex-col-reverse gap-4 sm:flex-row h-fit lg:sticky lg:top-24">
           <div className="flex sm:flex-col overflow-x-auto sm:overflow-y-auto justify-between sm:justify-start gap-3 sm:w-[15%] w-full no-scrollbar">
             {initialProductData.image.map((item, index) => (
@@ -69,14 +65,31 @@ const ProductClient = ({ initialProductData }: { initialProductData: ExtendedPro
                 className={`relative aspect-square w-[22%] sm:w-full flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${image === item ? "border-black" : "border-transparent bg-zinc-50"}`}
                 onClick={() => setImage(item)}
               >
-                <Image fill src={item} alt={`thumb-${index}`} className="object-cover" sizes="10vw" />
+                <Image 
+                  fill 
+                  src={item} 
+                  alt={`thumb-${index}`} 
+                  className="object-cover" 
+                  sizes="10vw" 
+                  // 🟢 Bypasses the pod network layout restriction for Cloudinary thumbnails
+                  unoptimized={item?.includes('cloudinary.com')}
+                />
               </div>
             ))}
           </div>
 
           <div className="w-full sm:w-[85%] bg-zinc-50 rounded-2xl overflow-hidden border border-zinc-100">
             <div className="relative aspect-[4/5] w-full">
-              <Image fill src={image} alt="main-product" className="object-cover hover:scale-105 transition-transform duration-700" priority sizes="(max-width: 1024px) 100vw, 40vw" />
+              <Image 
+                fill 
+                src={image} 
+                alt="main-product" 
+                className="object-cover hover:scale-105 transition-transform duration-700" 
+                priority 
+                sizes="(max-width: 1024px) 100vw, 40vw" 
+                // 🟢 Bypasses the pod network layout restriction for the large main image
+                unoptimized={image?.includes('cloudinary.com')}
+              />
             </div>
           </div>
         </div>
@@ -95,7 +108,6 @@ const ProductClient = ({ initialProductData }: { initialProductData: ExtendedPro
               {initialProductData.category}
             </Link>
             <span>/</span>
-            {/* 🟢 Now a clickable link for the subcategory */}
             <Link
               href={`/collection?category=${initialProductData.category}&subCategory=${initialProductData.subCategory}`}
               className="text-zinc-900 font-bold underline-offset-4 transition-all"
@@ -117,7 +129,6 @@ const ProductClient = ({ initialProductData }: { initialProductData: ExtendedPro
           <div className="flex items-center justify-between mt-6">
             <p className="text-3xl font-bold text-zinc-950">{currency}{initialProductData.price}</p>
 
-            {/* 🟢 Live Stock Badge */}
             <div className={`flex flex-col items-end transition-opacity duration-300 ${isSyncing ? 'opacity-50' : 'opacity-100'}`}>
               <div className="flex items-center gap-2">
                 <div className={`h-2 w-2 rounded-full ${isOutOfStock ? 'bg-red-500' : isLowStock ? 'bg-amber-500 animate-pulse' : 'bg-emerald-500'}`} />
@@ -164,7 +175,6 @@ const ProductClient = ({ initialProductData }: { initialProductData: ExtendedPro
             {isOutOfStock ? "NOT AVAILABLE" : !size ? "SELECT A SIZE" : "ADD TO CART"}
           </button>
 
-          {/* ... (Value Props) ... */}
           <div className="grid grid-cols-1 gap-4 mt-12 py-8 border-t border-zinc-100">
             <div className="flex items-center gap-4 text-sm font-medium text-zinc-700">
               <div className="w-10 h-10 rounded-full bg-zinc-50 flex items-center justify-center"><ShieldCheck className="w-5 h-5" /></div>
@@ -182,7 +192,6 @@ const ProductClient = ({ initialProductData }: { initialProductData: ExtendedPro
         </div>
       </div>
 
-      {/* ... (Description & Related Products) ... */}
       <div className="mt-24 border-t border-zinc-100">
         <div className="flex gap-8 -translate-y-[1px]">
           <button className="border-t-2 border-black py-6 font-bold text-sm tracking-widest uppercase">Description</button>
