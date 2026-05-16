@@ -46,7 +46,7 @@ const ShopContextProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState("");
   const [products, setProducts] = useState<Product[]>([]); // 🟢 Added
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null); // 🟢 Added
-  
+
   const navigate = useRouter();
 
   const getCartCount = useCallback(() => {
@@ -101,6 +101,28 @@ const ShopContextProvider = ({ children }: { children: ReactNode }) => {
       }
     }
   }, [token, backendUrl]);
+
+  // 🟢 Fetch all products on mount
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        if (backendUrl) {
+          const response = await axios.get(`${backendUrl}/api/product/list`);
+          if (response.data.success) {
+            setProducts(response.data.products);
+            console.log("✅ Products loaded into Context:", response.data.products.length);
+          } else {
+            toast.error(response.data.message);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+        // toast.error("Could not load products. Check backend connection.");
+      }
+    };
+
+    fetchProducts();
+  }, [backendUrl]);
 
   useEffect(() => {
     const storedToken = localStorage.getItem("token");

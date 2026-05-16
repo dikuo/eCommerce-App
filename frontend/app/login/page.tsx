@@ -50,7 +50,12 @@ const Login = () => {
       }
     } catch (error) {
       console.error(error);
-      toast.error((error as Error).message);
+      // Check if Axios has a response body with a specific message
+      const backendMessage = axios.isAxiosError(error)
+        ? error.response?.data?.message
+        : (error as Error).message;
+
+      toast.error(backendMessage || "An unexpected error occurred");
     } finally {
       setLoading(false);
     }
@@ -67,7 +72,7 @@ const Login = () => {
   return (
     <div className="min-h-[70vh] flex items-center justify-center px-4 py-20 animate-in fade-in duration-700">
       <div className="w-full max-w-[400px] space-y-8">
-        
+
         {/* --- Header Section --- */}
         <div className="text-center space-y-3">
           <h2 className="text-3xl font-medium tracking-tighter text-zinc-900 uppercase">
@@ -81,7 +86,7 @@ const Login = () => {
 
         {/* --- Form Section --- */}
         <form onSubmit={onSubmitHandler} className="space-y-4">
-          
+
           {currentState === "Sign Up" && (
             <div className="relative group">
               <Input
@@ -135,7 +140,7 @@ const Login = () => {
           </div>
 
           {/* --- Submit Button --- */}
-          <Button 
+          <Button
             disabled={loading}
             className="w-full h-12 rounded-full bg-black text-white hover:bg-zinc-800 transition-all font-bold text-[10px] tracking-[0.3em] group"
           >

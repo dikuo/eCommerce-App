@@ -123,7 +123,7 @@ const Navbar = () => {
           <div className="sm:hidden">
             <Sheet>
               <SheetTrigger asChild>
-                <Button variant="ghost" size="icon" className="hover:bg-transparent">
+                <Button variant="ghost" size="icon" className="hover:bg-transparent" aria-label="Open Navigation Menu">
                   <Menu className="w-6 h-6 text-gray-700" />
                 </Button>
               </SheetTrigger>

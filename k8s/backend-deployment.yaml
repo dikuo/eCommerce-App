@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment
+spec:
+  replicas: 2 # 🟢 Scaling! K8s will balance traffic between two copies
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+      - name: backend
+        image: dikuo/ecommerce-backend:v1 # 🟢 Your pushed image
+        ports:
+        - containerPort: 4000
+        env:
+        # 1. Database Connection
+        - name: MONGODB_URI
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secrets
+              key: MONGODB_URI
+        # 2. Cloudinary Credentials
+        - name: CLOUDINARY_NAME
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secrets
+              key: CLOUDINARY_NAME
+        - name: CLOUDINARY_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secrets
+              key: CLOUDINARY_API_KEY
+        - name: CLOUDINARY_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secrets
+              key: CLOUDINARY_SECRET_KEY
+        # 3. Security & Payments
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secrets
+              key: JWT_SECRET
+        # 4. Internal Networking 🟢
+        - name: INVENTORY_SERVICE_URL
+          value: "http://inventory-service:8080" 
+        # 5. stripe key
+        - name: STRIPE_SECRET_KEY
+          valueFrom:
+            secretKeyRef:
+              name: ecommerce-secrets
+              key: STRIPE_SECRET_KEY
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  selector:
+    app: backend
+  ports:
+    - protocol: TCP
+      port: 8080      # The port we hit from the outside
+      targetPort: 4000 # The port Node.js is listening on
+  type: LoadBalancer # 🟢 This gives you a single IP/URL to hit the backend

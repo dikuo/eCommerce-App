@@ -2,17 +2,106 @@ import { test, expect } from '@playwright/test';
 
 const BASE_URL = 'http://localhost:3000';
 
+// 🟢 Deterministic mock catalog shared between build states and browser intercept engines
+const ciMockProducts = [
+  {
+    _id: "660d1a2b3c4d5e6f7a8b9c01",
+    name: "Classic Crimson Hoodie",
+    description: "Premium weight cotton blend overhead hoodie.",
+    price: 85,
+    image: ["https://images.unsplash.com/photo-1556821840-3a63f95609a7?q=80&w=600"],
+    category: "Men",
+    subCategory: "Topwear",
+    sizes: ["S", "M", "L", "XL"],
+    bestseller: true,
+    date: 1715731200000
+  },
+  {
+    _id: "660d1a2b3c4d5e6f7a8b9c02",
+    name: "Midnight Bomber Jacket",
+    description: "Water-resistant satin finish bomber jacket.",
+    price: 120,
+    image: ["https://images.unsplash.com/photo-1551028719-00167b16eac5?q=80&w=600"],
+    category: "Men",
+    subCategory: "Outerwear",
+    sizes: ["M", "L", "XL"],
+    bestseller: true,
+    date: 1715731200000
+  },
+  {
+    _id: "660d1a2b3c4d5e6f7a8b9c03",
+    name: "Minimalist Knit Sweater",
+    description: "Soft merino wool blend crewneck sweater.",
+    price: 95,
+    image: ["https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?q=80&w=600"],
+    category: "Women",
+    subCategory: "Topwear",
+    sizes: ["XS", "S", "M", "L"],
+    bestseller: false,
+    date: 1715731200000
+  }
+];
 /**
  * E-commerce UI Professional Suite
- * 
- * Strategy:
+ * * Strategy:
  * - Uses 'domcontentloaded' for faster navigation.
  * - Employs "Sniper Clicks" (offset positions) to bypass button interception.
  * - Implements web-first assertions to avoid flaky hard-coded timeouts.
+ * - Mocks client-side network payloads to protect async state engines on CI.
  */
 test.describe('E-commerce UI Professional Suite', () => {
 
   test.beforeEach(async ({ page }) => {
+    
+    // 1. 🟢 Mock the main product catalog endpoint to feed browser view grids
+    await page.route('**/api/product/list', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          products: ciMockProducts
+        })
+      });
+    });
+
+    // 2. 🟢 Mock the detailed product locator route (dynamically extracts the requested ID payload)
+    await page.route('**/api/product/single', async (route) => {
+      const request = route.request();
+      let product = ciMockProducts[0];
+      
+      try {
+        const postData = request.postDataJSON();
+        if (postData && postData.productId) {
+          product = ciMockProducts.find(p => p._id === postData.productId) || ciMockProducts[0];
+        }
+      } catch (e) {
+        // Graceful fallback to head item if data stream parsing is blank
+      }
+
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          success: true,
+          product
+        })
+      });
+    });
+
+    // 3. 🟢 Mock Cart Action Requests (resolves button conversions and badge tracking indicators)
+    await page.route('**/api/cart/*', async (route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({ 
+          success: true, 
+          message: "Item verified and updated inside test cart context" 
+        })
+      });
+    });
+
+    // Fire initial entry point setup
     await page.goto(BASE_URL);
   });
 
@@ -30,8 +119,8 @@ test.describe('E-commerce UI Professional Suite', () => {
       const navItem = header.getByRole('link', { name: link.name, exact: true });
       await navItem.click();
 
-      await page.waitForURL(link.path === '/' ? BASE_URL + '/' : new RegExp(link.path), { 
-        waitUntil: 'domcontentloaded' 
+      await page.waitForURL(link.path === '/' ? BASE_URL + '/' : new RegExp(link.path), {
+        waitUntil: 'domcontentloaded'
       });
 
       await expect(navItem).toHaveClass(/text-black/);
@@ -53,9 +142,9 @@ test.describe('E-commerce UI Professional Suite', () => {
   // 3. Mobile Menu Responsiveness (Shadcn/UI Sheet)
   test('Mobile menu should toggle visibility on small screens', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
-    await page.reload(); 
+    await page.reload();
 
-    await page.getByRole('button').filter({ has: page.locator('svg.lucide-menu') }).click();
+    await page.getByRole('button', { name: 'Open Navigation Menu' }).click();
 
     const mobileMenu = page.getByRole('dialog');
     await expect(mobileMenu).toBeVisible();
@@ -111,18 +200,29 @@ test.describe('E-commerce UI Professional Suite', () => {
     await expect(modalContent.getByRole('button', { name: /add to/i })).toBeVisible();
   });
 
-  // 6. Mandatory Size Selection (Toast Validation)
-  test('Should show error toast when adding to cart without size', async ({ page }) => {
+  // 6. select size button to add to cart transformation
+  test('Button should transform from "Select a Size" to "Add to Cart" after selection', async ({ page }) => {
     await page.goto(`${BASE_URL}/collection`);
 
-    const firstProductLink = page.locator('a[href^="/product/"]').first();
-    await expect(firstProductLink).toBeVisible();
-    await firstProductLink.click({ position: { x: 10, y: 10 } });
+    // 1. Navigate to the first product
+    const firstProduct = page.locator('a[href^="/product/"]').first();
+    await firstProduct.click();
+    await page.waitForLoadState('networkidle');
 
-    await page.waitForURL(/\/product\/.+/, { waitUntil: 'domcontentloaded' });
+    // 2. ASSERT: The button initially says "Select a Size"
+    const actionBtn = page.getByRole('button', { name: /select a size|add to cart/i });
 
-    await page.getByRole('button', { name: /add to (cart|bag)/i }).click();
-    await expect(page.getByText(/select size/i)).toBeVisible();
+    // 1. Initial Check
+    await expect(actionBtn).toHaveText(/select a size/i);
+
+    // 2. Interaction
+    await page.getByRole('button', { name: 'L', exact: true }).click();
+
+    // 3. Final Check
+    await expect(actionBtn).toHaveText(/add to cart/i);
+
+    // 5. ACT: Now perform the actual add to cart
+    await actionBtn.click();
   });
 
   // 7. Filter Application & Result Synchronization
@@ -163,7 +263,7 @@ test.describe('E-commerce UI Professional Suite', () => {
     const initialName = await firstProduct.innerText();
 
     await page.selectOption('select', 'high-low');
-    
+
     // Assertion acts as a smart-wait for the sorting re-render
     await expect(firstProduct).not.toHaveText(initialName);
   });
@@ -190,10 +290,15 @@ test.describe('E-commerce UI Professional Suite', () => {
 
     await page.fill('input[type="email"]', 'unauthorized@example.com');
     await page.fill('input[type="password"]', 'invalid_password');
+
+    // Trigger login
     await page.getByRole('button', { name: /sign in/i }).click();
 
-    const errorMessage = page.getByText(/error/i).or(page.getByText(/invalid/i));
-    await expect(errorMessage).toBeVisible();
+    // Sonner toasts usually have a 'li' role or specific data attribute
+    const toastMessage = page.locator('[data-sonner-toast]');
+
+    await expect(toastMessage).toBeVisible({ timeout: 8000 });
+    await expect(toastMessage).toContainText(/invalid|error|exist/i);
   });
 
 });
