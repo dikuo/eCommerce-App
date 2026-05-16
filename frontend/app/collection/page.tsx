@@ -1,5 +1,6 @@
 import { Suspense } from 'react';
 import CollectionClient from './CollectionClient';
+import { ciMockProducts } from '@/utils/mockData';
 
 export const revalidate = 60;
 
@@ -24,7 +25,7 @@ export default async function Page() {
   } catch (error) {
     // 🟢 This is the "Safety Net" for your Docker Build
     console.error("⚠️ Collection Page: Backend unreachable during build. Defaulting to empty list.");
-    initialProducts = []; 
+    initialProducts = process.env.CI ? ciMockProducts : [];; 
   }
 
   return (

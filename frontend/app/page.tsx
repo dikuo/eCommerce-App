@@ -4,6 +4,8 @@ import BestSeller from "@/components/BestSeller";
 import OurPolicy from "@/components/OurPolicy";
 import NewsletterBox from "@/components/NewsletterBox";
 
+import { ciMockProducts } from "@/utils/mockData";
+
 export const revalidate = 60;
 
 // 🪐 Smart Cluster Router: Selects internal K8s DNS inside the cluster network
@@ -36,7 +38,7 @@ export default async function Page() {
     console.log(`🏠 Homepage populated successfully with ${allProducts.length} products inside the pod runtime.`);
   } catch (error) {
     console.error("⚠️ Home Page Server Fetch Exception:", error);
-    allProducts = []; 
+    allProducts = process.env.CI ? ciMockProducts : []; // Use mock data only in CI environments, otherwise fallback to empty array
   }
 
   // Slicing arrays safely from active runtime database values

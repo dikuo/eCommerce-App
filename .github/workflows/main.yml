@@ -56,13 +56,13 @@ jobs:
           NEXT_PUBLIC_BACKEND_URL: ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
         run: npm run build --prefix frontend
 
-      # 🪐 Playwright Browser Cache: Bypasses browser downloads on every push
+      # 🪐 Playwright Browser Cache: Uses the lockfile hash to track changes securely
       - name: Cache Playwright Binary Folders
         id: playwright-cache
         uses: actions/cache@v4
         with:
           path: ~/.cache/ms-playwright
-          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             ${{ runner.os }}-playwright-
 
