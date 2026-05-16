@@ -11,11 +11,16 @@ export const revalidate = 60;
 // 🪐 Smart Cluster Router: Selects internal K8s DNS inside the cluster network
 const getBackendUrl = () => {
   const isServer = typeof window === 'undefined';
-  const isInsideK8sPod = isServer && process.env.KUBERNETES_SERVICE_HOST;
+  
+  if (isServer) {
+    // Server-side / Build-time internal routing path
+    return process.env.KUBERNETES_SERVICE_HOST 
+      ? "http://backend-service:8080" 
+      : (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080");
+  }
 
-  return isInsideK8sPod 
-    ? "http://backend-service:8080" 
-    : process.env.NEXT_PUBLIC_BACKEND_URL;
+  // 🟢 Client-side (Browser): Return empty string so requests use relative paths like /api/product/...
+  return "";
 };
 
 export default async function Page() {
