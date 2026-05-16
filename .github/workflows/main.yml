@@ -1,13 +1,15 @@
-name: CI/CD Pipeline
+name: Production CI/CD Engine
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "main", "master" ]
 
 jobs:
+  # 🧪 JOB 1: Run Backend Tests (Jest)
   test-backend:
+    name: Backend Unit Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,8 +35,56 @@ jobs:
           cd backend
           npm test
 
-  build-frontend:
-    needs: test-backend # 🟢 Only build if tests pass!
+  # 🧪 JOB 2: Run Frontend E2E Tests (Playwright)
+  test-frontend-e2e:
+    name: Playwright E2E Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install Monorepo Dependencies
+        run: npm install
+
+      - name: Build Frontend Compilation Layer
+        env:
+          NEXT_PUBLIC_BACKEND_URL: ${{ secrets.NEXT_PUBLIC_BACKEND_URL }}
+        run: npm run build --prefix frontend
+
+      # 🪐 Playwright Browser Cache: Bypasses browser downloads on every push
+      - name: Cache Playwright Binary Folders
+        id: playwright-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ env.PLAYWRIGHT_VERSION }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Install Playwright Browsers (Only if Cache Misses)
+        if: steps.playwright-cache.outputs.cache-hit != 'true'
+        run: npx playwright install --with-deps
+
+      - name: Run Playwright Test Suite (Throttled Workers)
+        run: npx playwright test --workers=2
+
+      - name: Upload Failure Artifacts
+        uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 30
+
+  # 🚀 JOB 3: Build & Ship Container (Only runs if BOTH Test Tracks Pass)
+  build-and-ship-frontend:
+    name: Build & Push Docker Image
+    needs: [test-backend, test-frontend-e2e] # 🟢 The Guardrail: Both jobs must clear successfully
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -45,10 +95,10 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and Push Frontend
+      - name: Build and Push Frontend Production Layer
         uses: docker/build-push-action@v5
         with:
-          context: . # 🟢 Crucial: Build from root to see the /shared folder
+          context: .
           file: ./frontend/Dockerfile
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/ecommerce-frontend:latest
