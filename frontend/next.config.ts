@@ -8,10 +8,25 @@ const BACKEND_INTERNAL_URL = isInsideK8s
   ? 'http://backend-service:8080' 
   : 'http://localhost:8080';
 
+  // 🟢 Go Inventory Microservice Routing Target
+// In K8s, it uses port 8080 over its own service line. Locally, assume port 8081 to avoid conflict.
+const INVENTORY_INTERNAL_URL = isInsideK8s 
+  ? 'http://inventory-service:8080' 
+  : 'http://localhost:8081';
+
 const nextConfig: NextConfig = {
   /* 1. The Reverse Proxy Rules */
   async rewrites() {
     return [
+      {
+        /**
+         * 🟢 Go Inventory Microservice Proxy
+         * Catches frontend live stock checks and proxies them directly to the Go engine.
+         * CRITICAL: This MUST sit above the general /api/:path* catch-all.
+         */
+        source: '/api/inventory/:id',
+        destination: `${INVENTORY_INTERNAL_URL}/api/inventory/:id`,
+      },
       {
         /**
          * 🟢 Unified Core API Rewrite Proxy
