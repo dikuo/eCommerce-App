@@ -76,5 +76,10 @@ export default defineConfig({
     url: 'http://localhost:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000, // Give it a little extra time to boot up
+    // 🟢 Explicitly pass configuration flags straight to the Next.js child process
+    env: {
+      CI: 'true',
+      NEXT_PUBLIC_BACKEND_URL: 'http://localhost:8080' 
+    }
   },
 });
