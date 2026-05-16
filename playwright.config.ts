@@ -26,7 +26,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('')`. */
-    baseURL: 'http://localhost:3000',
+    baseURL: 'http://127.0.0.1:3000',
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -73,13 +73,13 @@ export default defineConfig({
   /* Run your local dev server before starting the tests */
   webServer: {
     command: 'npm run start --prefix frontend', 
-    url: 'http://localhost:3000',
+    url: 'http://127.0.0.1:3000',
     reuseExistingServer: !process.env.CI,
     timeout: 120 * 1000, // Give it a little extra time to boot up
     // 🟢 Explicitly pass configuration flags straight to the Next.js child process
     env: {
       CI: 'true',
-      NEXT_PUBLIC_BACKEND_URL: 'http://localhost:8080' 
+      NEXT_PUBLIC_BACKEND_URL: 'http://127.0.0.1:8080' 
     }
   },
 });
