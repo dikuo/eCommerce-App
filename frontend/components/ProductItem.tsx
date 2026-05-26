@@ -48,7 +48,7 @@ const ProductItem = ({ product }: ProductItemProps) => {
     >
 
       {/* Image Wrapper */}
-      <div className="overflow-hidden rounded-xl sm:rounded-2xl bg-zinc-100 aspect-[4/5] relative border border-zinc-100">
+      <div className="overflow-hidden rounded-xl sm:rounded-2xl bg-zinc-100 aspect-[4/5] relative border border-zinc-100 max-h-[280px] xl:max-h-[320px]">
         <Image
           src={getOptimizedSrc(product.image[0])}
           alt={product.name}

@@ -54,8 +54,8 @@ const ProductClient = ({ initialProductData }: { initialProductData: ExtendedPro
   const isLowStock = liveStock > 0 && liveStock <= 5;
 
   return (
-    <div className="pt-10 transition-all ease-in duration-500 opacity-100">
-      <div className="flex gap-12 flex-col lg:flex-row">
+    <div className="pt-10 transition-all ease-in duration-500 opacity-100 max-w-7xl mx-auto px-4">
+      <div className="flex gap-12 flex-col lg:flex-row justify-center">
 
         {/* -------- Left: Product Images -------- */}
         <div className="flex-1 flex flex-col-reverse gap-4 sm:flex-row h-fit lg:sticky lg:top-24 lg:max-w-[500px] xl:max-w-[560px]">
