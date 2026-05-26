@@ -9,9 +9,17 @@
                     "dist/**"
                 ]
             }
+        }, 
+        {
+            "src": "vercel/inventory.go",
+            "use": "@vercel/go"
         }
     ],
     "routes": [
+        {
+            "src": "/api/inventory/(.*)",
+            "dest": "api/inventory.go?id=$1"
+        },
         {
             "src": "/(.*)",
             "dest": "server.js"

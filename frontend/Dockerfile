@@ -13,7 +13,7 @@ COPY frontend ./frontend
 
 WORKDIR /app/frontend
 # 🟢 Fixed Syntax: Use = for ENV and ARG
-ARG NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
+ARG NEXT_PUBLIC_BACKEND_URL=http://backend-service.default.svc.cluster.local:8080
 ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
 RUN npm run build
 

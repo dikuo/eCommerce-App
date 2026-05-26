@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: inventory-service
-        image: dikuo/inventory-go:v1 # 🟢 The image you just pushed
+        image: dikuo/inventory-go:v4 # 🟢 The image you just pushed
         ports:
         - containerPort: 8080
         env:

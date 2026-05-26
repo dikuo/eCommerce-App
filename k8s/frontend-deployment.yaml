@@ -14,12 +14,10 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: dikuo/ecommerce-frontend:v1 # 🟢 Your newly pushed image
+        image: dikuo/ecommerce-frontend:v21 # 🟢 Your newly pushed image
         ports:
         - containerPort: 3000
-        env:
-        - name: NEXT_PUBLIC_BACKEND_URL
-          value: "http://localhost:8080" # 🟢 Points to your Backend Service LoadBalancer
+        
 ---
 apiVersion: v1
 kind: Service

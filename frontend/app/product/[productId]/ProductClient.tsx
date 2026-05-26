@@ -26,21 +26,22 @@ const ProductClient = ({ initialProductData }: { initialProductData: ExtendedPro
   useEffect(() => {
     const fetchLiveInventory = async () => {
       try {
-        const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-        const res = await fetch(`${backendUrl}/api/product/single`, {
-          method: 'POST',
+        // 🟢 FIX 1: Use a clean relative path so next.config.ts intercepts it
+        // 🟢 FIX 2: Route directly to your Go endpoint (/api/inventory/:id) instead of Node
+        const res = await fetch(`/api/inventory/${initialProductData._id}`, {
+          method: 'GET', // Your Go Fiber app listens explicitly for GET
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ productId: initialProductData._id }),
         });
 
         const data = await res.json();
 
-        if (data.success) {
-          setLiveStock(data.product.stock);
-          setLiveStatus(data.product.stockStatus);
+        // 🟢 FIX 3: Map the keys to match your Go Struct's JSON outputs precisely
+        if (res.ok && data.stock !== undefined) {
+          setLiveStock(data.stock);
+          setLiveStatus(data.provider); // Will display "Go Inventory Engine"
         }
       } catch (error) {
-        console.error("Failed to sync live inventory:", error);
+        console.error("Failed to sync live inventory from Go engine:", error);
       } finally {
         setIsSyncing(false);
       }
@@ -72,7 +73,7 @@ const ProductClient = ({ initialProductData }: { initialProductData: ExtendedPro
                   className="object-cover" 
                   sizes="10vw" 
                   // 🟢 Bypasses the pod network layout restriction for Cloudinary thumbnails
-                  unoptimized={item?.includes('cloudinary.com')}
+                  unoptimized={true}
                 />
               </div>
             ))}
@@ -88,7 +89,7 @@ const ProductClient = ({ initialProductData }: { initialProductData: ExtendedPro
                 priority 
                 sizes="(max-width: 1024px) 100vw, 40vw" 
                 // 🟢 Bypasses the pod network layout restriction for the large main image
-                unoptimized={image?.includes('cloudinary.com')}
+                unoptimized={true}
               />
             </div>
           </div>

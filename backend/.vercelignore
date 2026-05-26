@@ -1,0 +1,4 @@
+main.go
+Dockerfile
+Dockerfile.inventory
+Dockerfile.inventory.dockerignore

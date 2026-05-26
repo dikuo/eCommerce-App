@@ -1,36 +1,48 @@
 import type { NextConfig } from "next";
 import path from "path";
 
-// 🪐 Smart Cluster Router: Check if running inside a containerized Kubernetes pod
 const isInsideK8s = typeof process !== 'undefined' && !!process.env.KUBERNETES_SERVICE_HOST;
 
-const BACKEND_INTERNAL_URL = isInsideK8s 
-  ? 'http://backend-service:8080' 
-  : 'http://localhost:8080';
+// 🟢 Use the K8s-injected env vars if they exist, otherwise fallback to local/compose
+const BACKEND_INTERNAL_URL = process.env.NEXT_PUBLIC_BACKEND_URL 
+  || "http://backend-service.default.svc.cluster.local:8080";
+
+const INVENTORY_INTERNAL_URL = process.env.INVENTORY_INTERNAL_URL 
+  || "http://inventory-service.default.svc.cluster.local:8080";
 
 const nextConfig: NextConfig = {
   /* 1. The Reverse Proxy Rules */
+  /* 1. The Reverse Proxy Rules */
   async rewrites() {
-    return [
-      {
-        /**
-         * 🟢 Unified Core API Rewrite Proxy
-         * Catches browser-side relative fetches (/api/...) and pipes them 
-         * directly over internal network lines to your backend microservice.
-         */
-        source: '/api/:path*',
-        destination: `${BACKEND_INTERNAL_URL}/api/:path*`,
-      },
-      {
-        /**
-         * 🟢 Image Optimization Rewrite Bridge
-         * Intercepts relative image assets paths on the client side and 
-         * safely proxies them internally via K8s DNS or local loopback.
-         */
-        source: '/backend-assets/:path*',
-        destination: `${BACKEND_INTERNAL_URL}/:path*`,
-      },
-    ];
+    return {
+      // 🟢 CRITICAL: Force Next.js to route these before looking for physical pages
+      beforeFiles: [
+        {
+          /**
+           * 🟢 Go Inventory Microservice Proxy
+           * Catches frontend live stock checks and proxies them directly to the Go engine.
+           */
+          source: '/api/inventory/:path*',
+          destination: `${INVENTORY_INTERNAL_URL}/api/inventory/:path*`,
+        },
+        {
+          /**
+           * 🟢 Unified Core API Rewrite Proxy
+           */
+          source: '/api/:path*',
+          destination: `${BACKEND_INTERNAL_URL}/api/:path*`,
+        },
+        {
+          /**
+           * 🟢 Image Optimization Rewrite Bridge
+           */
+          source: '/backend-assets/:path*',
+          destination: `${BACKEND_INTERNAL_URL}/:path*`,
+        },
+      ],
+      afterFiles: [],
+      fallback: [],
+    };
   },
 
   /* 2. Shared Folder Support */
@@ -42,10 +54,12 @@ const nextConfig: NextConfig = {
 
   /* 4. Image Configuration */
   images: {
+    unoptimized: true, // 🟢 Disable Next.js's built-in image optimization to avoid pod resource strain
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'res.cloudinary.com',  // Production asset engine
+        pathname: '/**', // Allow all paths under this domain
       },
       {
         protocol: 'https',

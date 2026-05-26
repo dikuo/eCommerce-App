@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
 import { createContext, ReactNode, useEffect, useState, useMemo, useCallback, useContext } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import type { User, Product } from "@shared/types"; // 🟢 Ensure Product is imported
+import type { User, Product } from "@shared/types";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 type CartData = User["cartData"];
@@ -12,7 +12,7 @@ type CartData = User["cartData"];
 export interface ShopContextValue {
   currency: string;
   delivery_fee: number;
-  backendUrl: string | undefined;
+  backendUrl: string;
   search: string;
   setSearch: (value: string) => void;
   showSearch: boolean;
@@ -25,7 +25,6 @@ export interface ShopContextValue {
   updateQuantity: (itemId: string, size: string, quantity: number) => Promise<void>;
   getCartCount: () => number;
   navigate: AppRouterInstance;
-  // 🟢 Added for Quick View logic in ProductItem
   products: Product[];
   setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
   selectedProduct: Product | null;
@@ -37,15 +36,27 @@ export const ShopContext = createContext<ShopContextValue | null>(null);
 const ShopContextProvider = ({ children }: { children: ReactNode }) => {
   const currency = "$";
   const delivery_fee = 10;
-  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  // 🟢 FIXED: Use useState, NOT useShop() here
+  /**
+   * 🟢 SMART RUNTIME URL ROUTER
+   * Forces the browser client to use relative pathways ("") so Next.js rewrites can intercept them.
+   * On the server side, it maps cleanly to internal container DNS lines.
+   */
+  const backendUrl = useMemo(() => {
+    if (typeof window === "undefined") {
+      return process.env.KUBERNETES_SERVICE_HOST
+        ? "http://backend-service:8080"
+        : (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080");
+    }
+    return ""; // Relative path identifier for client execution
+  }, []);
+
   const [search, setSearch] = useState("");
   const [showSearch, setShowSearch] = useState(false);
   const [cartItems, setCartItems] = useState<CartData>({});
   const [token, setToken] = useState("");
-  const [products, setProducts] = useState<Product[]>([]); // 🟢 Added
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null); // 🟢 Added
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const navigate = useRouter();
 
@@ -78,7 +89,7 @@ const ShopContextProvider = ({ children }: { children: ReactNode }) => {
       try {
         await axios.post(`${backendUrl}/api/cart/add`, { itemId, size }, { headers: { token } });
       } catch (error) {
-        console.error(error);
+        console.error("Cart sync failed:", error);
       }
     }
   }, [token, backendUrl]);
@@ -102,22 +113,20 @@ const ShopContextProvider = ({ children }: { children: ReactNode }) => {
     }
   }, [token, backendUrl]);
 
-  // 🟢 Fetch all products on mount
+  // 🟢 Fetch all products on mount using relative proxy channels
   useEffect(() => {
     const fetchProducts = async () => {
+      if (products.length > 0) return;
+
       try {
-        if (backendUrl) {
-          const response = await axios.get(`${backendUrl}/api/product/list`);
-          if (response.data.success) {
-            setProducts(response.data.products);
-            console.log("✅ Products loaded into Context:", response.data.products.length);
-          } else {
-            toast.error(response.data.message);
-          }
+        const response = await axios.get(`${backendUrl}/api/product/list`);
+        if (response.data.success) {
+          setProducts(response.data.products);
+        } else {
+          toast.error(response.data.message);
         }
       } catch (error) {
-        console.error("Failed to fetch products:", error);
-        // toast.error("Could not load products. Check backend connection.");
+        console.error("Failed to fetch products through cluster gateway:", error);
       }
     };
 
@@ -147,10 +156,10 @@ const ShopContextProvider = ({ children }: { children: ReactNode }) => {
     token,
     setToken,
     navigate,
-    products,       // 🟢 Added to value
-    setProducts,    // 🟢 Added to value
-    selectedProduct, // 🟢 Added to value
-    setSelectedProduct, // 🟢 Added to value
+    products,
+    setProducts,
+    selectedProduct,
+    setSelectedProduct,
   }), [search, showSearch, cartItems, token, navigate, getCartCount, addToCart, updateQuantity, backendUrl, products, selectedProduct]);
 
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>;

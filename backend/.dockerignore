@@ -1,7 +1,18 @@
-node_modules
-.git
-.gitignore
+# Ignore local node_modules (npm ci will build fresh ones for Alpine)
+node_modules/
+npm-debug.log
+
+# Ignore Environment Variables (Security Shield)
 .env
-npm-debug.log*
-build
-dist
+.env.*
+
+# Ignore all Go files (Node doesn't need them to run)
+api/
+main.go
+go.mod
+go.sum
+
+# Ignore Go binaries and Go Dockerfiles
+main
+Dockerfile.inventory
+Dockerfile.inventory.dockerignore

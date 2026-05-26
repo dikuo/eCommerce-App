@@ -14,8 +14,8 @@ import type { Product } from "@shared/types";
 
 const Cart = () => {
   // 1. Removed 'products' from context; added 'backendUrl'
-  const { currency, cartItems, updateQuantity, backendUrl } = useShop();
-  
+  const { currency, cartItems, updateQuantity, backendUrl, products: contextProducts } = useShop();
+
   const [products, setProducts] = useState<Product[]>([]); // 🟢 Local product state
   const [cartData, setCartData] = useState<any[]>([]);
   const [isMounted, setIsMounted] = useState(false);
@@ -24,6 +24,12 @@ const Cart = () => {
   // 2. Fetch products locally on mount
   useEffect(() => {
     setIsMounted(true);
+
+    if (contextProducts.length > 0) {
+      setProducts(contextProducts);
+      return;
+    }
+
     const fetchProducts = async () => {
       try {
         const response = await axios.get(`${backendUrl}/api/product/list`);
@@ -35,7 +41,7 @@ const Cart = () => {
       }
     };
     fetchProducts();
-  }, [backendUrl]);
+  }, [backendUrl, contextProducts]);
 
   // 3. Transform cartItems into a flat list for rendering
   useEffect(() => {
@@ -161,7 +167,7 @@ const Cart = () => {
         <div className="w-full sm:w-[400px]">
           {/* 🟢 Passing the locally calculated subtotal */}
           <CartTotal subtotal={subtotal} />
-          
+
           <div className="mt-8">
             <Button
               onClick={() => router.push("/place-order")}

@@ -43,7 +43,7 @@ const QuickViewModal = () => {
             alt={selectedProduct.name} 
             fill 
             className="object-cover"
-            unoptimized
+            // unoptimized={selectedProduct.image[0]?.includes('cloudinary.com')} // Handle external URLs
             priority
           />
         </div>
