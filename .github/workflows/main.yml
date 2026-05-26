@@ -88,8 +88,8 @@ jobs:
 
   # 🚀 JOB 3: Build & Ship Container (Only runs if BOTH Test Tracks Pass)
   build-and-ship-frontend:
-    name: Build & Push Docker Image
-    needs: [test-backend, test-frontend-e2e] # 🟢 The Guardrail: Both jobs must clear successfully
+    name: Build & Push Docker Images
+    needs: [test-backend, test-frontend-e2e]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -100,7 +100,7 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and Push Frontend Production Layer
+      - name: Build and Push Frontend
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -108,4 +108,20 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/ecommerce-frontend:latest
           build-args: |
-            NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
+            NEXT_PUBLIC_BACKEND_URL=https://carastyle-backend.vercel.app
+
+      - name: Build and Push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/ecommerce-backend:latest
+
+      - name: Build and Push Inventory (Go)
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          file: ./backend/Dockerfile.inventory
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/ecommerce-inventory:latest
