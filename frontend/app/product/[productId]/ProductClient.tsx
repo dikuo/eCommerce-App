@@ -36,8 +36,8 @@ const ProductClient = ({ initialProductData }: { initialProductData: ExtendedPro
         const data = await res.json();
 
         // 🟢 FIX 3: Map the keys to match your Go Struct's JSON outputs precisely
-        if (res.ok && data.current_stock !== undefined) {
-          setLiveStock(data.current_stock);
+        if (res.ok && data.stock !== undefined) {
+          setLiveStock(data.stock);
           setLiveStatus(data.provider); // Will display "Go Inventory Engine"
         }
       } catch (error) {
@@ -73,7 +73,7 @@ const ProductClient = ({ initialProductData }: { initialProductData: ExtendedPro
                   className="object-cover" 
                   sizes="10vw" 
                   // 🟢 Bypasses the pod network layout restriction for Cloudinary thumbnails
-                  unoptimized={item?.includes('cloudinary.com')}
+                  unoptimized={true}
                 />
               </div>
             ))}
@@ -89,7 +89,7 @@ const ProductClient = ({ initialProductData }: { initialProductData: ExtendedPro
                 priority 
                 sizes="(max-width: 1024px) 100vw, 40vw" 
                 // 🟢 Bypasses the pod network layout restriction for the large main image
-                unoptimized={image?.includes('cloudinary.com')}
+                unoptimized={true}
               />
             </div>
           </div>

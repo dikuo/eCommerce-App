@@ -50,12 +50,12 @@ const ProductItem = ({ product }: ProductItemProps) => {
       {/* Image Wrapper */}
       <div className="overflow-hidden rounded-xl sm:rounded-2xl bg-zinc-100 aspect-[4/5] relative border border-zinc-100">
         <Image
-          src={product.image[0]}
+          src={getOptimizedSrc(product.image[0])}
           alt={product.name}
           fill
           sizes="(max-width: 768px) 50vw, 33vw"
           // 🟢 If the image lives on Cloudinary, bypass the pod's broken network pathway
-          unoptimized={product.image[0]?.includes('cloudinary.com')}
+          unoptimized={true}
           className="object-cover group-hover:scale-105 transition-transform duration-700"
         />
 

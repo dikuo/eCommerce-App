@@ -5,7 +5,9 @@ import { ciMockProducts } from '@/utils/mockData';
 export const revalidate = 60;
 
 export default async function Page() {
-  const backendUrl = "http://backend-service:8080";
+  const backendUrl = process.env.KUBERNETES_SERVICE_HOST
+  ? "http://backend-service.default.svc.cluster.local:8080"
+  : "http://localhost:8080";
   let initialProducts = [];
 
   try {

@@ -1,0 +1,15 @@
+# Ignore EVERYTHING related to Node.js
+node_modules/
+package*.json
+npm-debug.log
+
+# Ignore Environment Variables (Security Shield)
+.env
+.env.*
+
+# Ignore old compiled Go binaries from your laptop
+main
+*.exe
+
+# Ignore the Node Dockerfile
+Dockerfile
