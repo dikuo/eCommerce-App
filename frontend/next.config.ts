@@ -1,5 +1,4 @@
 import type { NextConfig } from "next";
-import path from "path";
 
 const isVercel = !!process.env.VERCEL;
 
@@ -9,8 +8,10 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL
     ? 'https://carastyle-backend.vercel.app'
     : 'http://backend-service.default.svc.cluster.local:8080');
 
-const INVENTORY_URL = isVercel
-  ? 'https://carastyle-backend.vercel.app'  // Go function lives here on Vercel
+const isK8s = !!process.env.KUBERNETES_SERVICE_HOST;
+
+const INVENTORY_URL = isVercel || !isK8s
+  ? 'https://carastyle-backend.vercel.app'
   : (process.env.INVENTORY_INTERNAL_URL 
     || 'http://inventory-service.default.svc.cluster.local:8080');
 
