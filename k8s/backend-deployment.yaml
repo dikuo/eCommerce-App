@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: dikuo/ecommerce-backend:v1 # 🟢 Your pushed image
+        image: dikuo/ecommerce-backend:v2 # 🟢 Your pushed image
         ports:
         - containerPort: 4000
         env:

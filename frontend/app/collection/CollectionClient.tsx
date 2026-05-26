@@ -16,9 +16,14 @@ const CollectionClient = ({ initialProducts }: { initialProducts: Product[] }) =
   const subCategoryFromURL = searchParams.get("subCategory");
 
   // 🟢 Guaranteed type-safety from useShop hook
-  const { products, search, showSearch } = useShop();
+  const { products, setProducts, search, showSearch } = useShop();
 
-  console.log("📊 RENDER CYCLE -> Server Prop:", initialProducts?.length, " | Client Context:", products?.length);
+  // Seed context from server props so other pages get products too
+  useEffect(() => {
+    if (initialProducts.length > 0 && products.length === 0) {
+      setProducts(initialProducts);
+    }
+  }, [initialProducts]);
 
   const [showFilter, setShowFilter] = useState(false);
   const [filterProducts, setFilterProducts] = useState<Product[]>(initialProducts);
@@ -49,29 +54,20 @@ const CollectionClient = ({ initialProducts }: { initialProducts: Product[] }) =
   const applyFilter = () => {
     const baseProducts = initialProducts && initialProducts.length > 0 ? initialProducts : products;
 
-    // 📊 LOG 1: See if the 50 items are actually arriving here
-    console.log("1. Base products entering filter:", baseProducts.length);
-
     let productsCopy = [...baseProducts];
 
     if (showSearch && search) {
       productsCopy = productsCopy.filter((item) =>
         item.name.toLowerCase().includes(search.toLowerCase())
       );
-      // 📊 LOG 2: Check search filter impact
-      console.log("2. Count after Search filter:", productsCopy.length);
     }
 
     if (category.length > 0) {
       productsCopy = productsCopy.filter((item) => category.includes(item.category));
-      // 📊 LOG 3: Check category filter impact
-      console.log("3. Count after Category filter:", productsCopy.length);
     }
 
     if (subCategory.length > 0) {
       productsCopy = productsCopy.filter((item) => subCategory.includes(item.subCategory));
-      // 📊 LOG 4: Check subcategory filter impact
-      console.log("4. Count after SubCategory filter:", productsCopy.length);
     }
 
     if (sortType === "low-high") {

@@ -4,7 +4,7 @@ import { createContext, ReactNode, useEffect, useState, useMemo, useCallback, us
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import type { User, Product } from "@shared/types"; 
+import type { User, Product } from "@shared/types";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 type CartData = User["cartData"];
@@ -44,8 +44,8 @@ const ShopContextProvider = ({ children }: { children: ReactNode }) => {
    */
   const backendUrl = useMemo(() => {
     if (typeof window === "undefined") {
-      return process.env.KUBERNETES_SERVICE_HOST 
-        ? "http://backend-service:8080" 
+      return process.env.KUBERNETES_SERVICE_HOST
+        ? "http://backend-service:8080"
         : (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080");
     }
     return ""; // Relative path identifier for client execution
@@ -55,8 +55,8 @@ const ShopContextProvider = ({ children }: { children: ReactNode }) => {
   const [showSearch, setShowSearch] = useState(false);
   const [cartItems, setCartItems] = useState<CartData>({});
   const [token, setToken] = useState("");
-  const [products, setProducts] = useState<Product[]>([]); 
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null); 
+  const [products, setProducts] = useState<Product[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   const navigate = useRouter();
 
@@ -116,11 +116,12 @@ const ShopContextProvider = ({ children }: { children: ReactNode }) => {
   // 🟢 Fetch all products on mount using relative proxy channels
   useEffect(() => {
     const fetchProducts = async () => {
+      if (products.length > 0) return;
+
       try {
         const response = await axios.get(`${backendUrl}/api/product/list`);
         if (response.data.success) {
           setProducts(response.data.products);
-          console.log("✅ Products loaded into Context:", response.data.products.length);
         } else {
           toast.error(response.data.message);
         }
@@ -155,10 +156,10 @@ const ShopContextProvider = ({ children }: { children: ReactNode }) => {
     token,
     setToken,
     navigate,
-    products,       
-    setProducts,    
-    selectedProduct, 
-    setSelectedProduct, 
+    products,
+    setProducts,
+    selectedProduct,
+    setSelectedProduct,
   }), [search, showSearch, cartItems, token, navigate, getCartCount, addToCart, updateQuantity, backendUrl, products, selectedProduct]);
 
   return <ShopContext.Provider value={value}>{children}</ShopContext.Provider>;

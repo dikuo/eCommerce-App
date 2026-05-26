@@ -12,7 +12,7 @@ const getBackendUrl = () => {
   if (isServer) {
     // Server-side / Build-time internal routing path
     return process.env.KUBERNETES_SERVICE_HOST 
-      ? "http://backend-service:8080" 
+      ? "http://backend-service.default.svc.cluster.local:8080" 
       : (process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080");
   }
 

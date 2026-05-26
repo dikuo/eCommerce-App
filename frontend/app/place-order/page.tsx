@@ -1,6 +1,6 @@
 'use client';
 
-import {  useState, useEffect, useMemo, type ChangeEvent, type FormEvent } from "react";
+import { useState, useEffect, useMemo, type ChangeEvent, type FormEvent } from "react";
 import Title from "@/components/Title";
 import CartTotal from "@/components/CartTotal";
 import { assets } from "@/assets/assets";
@@ -44,7 +44,7 @@ const PlaceOrder = () => {
   const [products, setProducts] = useState<Product[]>([]); // 🟢 Local state for products
   const router = useRouter();
 
-  const { backendUrl, token, cartItems, setCartItems, delivery_fee } = useShop();
+  const { backendUrl, token, cartItems, setCartItems, delivery_fee, products: contextProducts } = useShop();
 
   const [formData, setFormData] = useState<AddressFormData>({
     firstName: "",
@@ -61,6 +61,12 @@ const PlaceOrder = () => {
   // 1. Fetch products locally on mount for checkout accuracy
   useEffect(() => {
     setIsMounted(true);
+
+    if (contextProducts.length > 0) {
+      setProducts(contextProducts);
+      return;
+    }
+
     const fetchProducts = async () => {
       try {
         const response = await axios.get(`${backendUrl}/api/product/list`);
@@ -73,7 +79,7 @@ const PlaceOrder = () => {
       }
     };
     fetchProducts();
-  }, [backendUrl]);
+  }, [backendUrl, contextProducts]);
 
   // 2. Calculate subtotal locally based on the fetched products
   const subtotal = useMemo(() => {
@@ -188,54 +194,53 @@ const PlaceOrder = () => {
 
   return (
     <form onSubmit={onSubmitHandler} className="flex flex-col lg:flex-row justify-between gap-16 pt-10 pb-24 border-t border-zinc-100">
-      
+
       {/* --- Left Side: Delivery Information --- */}
       <div className="flex flex-col gap-6 w-full lg:max-w-[500px]">
         <div className="mb-4">
           <Title text1={"DELIVERY"} text2={"INFO"} />
         </div>
-        
+
         <div className="flex gap-4">
           <InputField name="firstName" value={formData.firstName} onChange={onChangeHandler} placeholder="First name" />
           <InputField name="lastName" value={formData.lastName} onChange={onChangeHandler} placeholder="Last name" />
         </div>
-        
+
         <InputField name="email" type="email" value={formData.email} onChange={onChangeHandler} placeholder="Email address" />
         <InputField name="street" value={formData.street} onChange={onChangeHandler} placeholder="Street address" />
-        
+
         <div className="flex gap-4">
           <InputField name="city" value={formData.city} onChange={onChangeHandler} placeholder="City" />
           <InputField name="state" value={formData.state} onChange={onChangeHandler} placeholder="State" />
         </div>
-        
+
         <div className="flex gap-4">
           <InputField name="zipcode" type="number" value={formData.zipcode} onChange={onChangeHandler} placeholder="Zipcode" />
           <InputField name="country" value={formData.country} onChange={onChangeHandler} placeholder="Country" />
         </div>
-        
+
         <InputField name="phone" type="number" value={formData.phone} onChange={onChangeHandler} placeholder="Phone number" />
       </div>
 
       {/* --- Right Side: Order Summary & Payment --- */}
       <div className="flex-1 lg:max-w-[450px]">
         <div className="bg-zinc-50/50 p-8 rounded-3xl border border-zinc-100 shadow-sm">
-          
+
           {/* 🟢 Passing the local subtotal to CartTotal */}
           <CartTotal subtotal={subtotal} />
-          
+
           <div className="mt-12 space-y-6">
             <div className="flex items-center gap-2 mb-4">
-               <CreditCard className="w-4 h-4 text-zinc-400" />
-               <h3 className="text-xs font-black tracking-[0.2em] uppercase text-zinc-400">Payment Method</h3>
+              <CreditCard className="w-4 h-4 text-zinc-400" />
+              <h3 className="text-xs font-black tracking-[0.2em] uppercase text-zinc-400">Payment Method</h3>
             </div>
 
             <div className="grid grid-cols-1 gap-3">
               {/* Payment Methods Logic remains consistent */}
-              <div 
-                onClick={() => setMethod("stripe")} 
-                className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${
-                  method === "stripe" ? "border-black bg-white shadow-md" : "border-zinc-100 bg-white/50 grayscale opacity-60 hover:opacity-100"
-                }`}
+              <div
+                onClick={() => setMethod("stripe")}
+                className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${method === "stripe" ? "border-black bg-white shadow-md" : "border-zinc-100 bg-white/50 grayscale opacity-60 hover:opacity-100"
+                  }`}
               >
                 <div className="flex items-center gap-4">
                   <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${method === "stripe" ? "border-black" : "border-zinc-200"}`}>
@@ -247,11 +252,10 @@ const PlaceOrder = () => {
                 </div>
               </div>
 
-              <div 
-                onClick={() => setMethod("paypal")} 
-                className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${
-                  method === "paypal" ? "border-black bg-white shadow-md" : "border-zinc-100 bg-white/50 grayscale opacity-60 hover:opacity-100"
-                }`}
+              <div
+                onClick={() => setMethod("paypal")}
+                className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${method === "paypal" ? "border-black bg-white shadow-md" : "border-zinc-100 bg-white/50 grayscale opacity-60 hover:opacity-100"
+                  }`}
               >
                 <div className="flex items-center gap-4">
                   <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${method === "paypal" ? "border-black" : "border-zinc-200"}`}>
@@ -263,11 +267,10 @@ const PlaceOrder = () => {
                 </div>
               </div>
 
-              <div 
-                onClick={() => setMethod("cod")} 
-                className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${
-                  method === "cod" ? "border-black bg-white shadow-md" : "border-zinc-100 bg-white/50 opacity-60 hover:opacity-100"
-                }`}
+              <div
+                onClick={() => setMethod("cod")}
+                className={`flex items-center justify-between p-4 rounded-2xl border transition-all cursor-pointer ${method === "cod" ? "border-black bg-white shadow-md" : "border-zinc-100 bg-white/50 opacity-60 hover:opacity-100"
+                  }`}
               >
                 <div className="flex items-center gap-4">
                   <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${method === "cod" ? "border-black" : "border-zinc-200"}`}>
@@ -280,8 +283,8 @@ const PlaceOrder = () => {
             </div>
 
             <div className="pt-8">
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full bg-black text-white rounded-full py-8 font-black text-xs tracking-[0.25em] uppercase hover:bg-zinc-800 transition-all shadow-xl shadow-zinc-200"
               >
                 Confirm Order
