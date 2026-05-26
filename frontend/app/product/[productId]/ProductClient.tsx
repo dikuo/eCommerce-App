@@ -58,7 +58,7 @@ const ProductClient = ({ initialProductData }: { initialProductData: ExtendedPro
       <div className="flex gap-12 flex-col lg:flex-row">
 
         {/* -------- Left: Product Images -------- */}
-        <div className="flex-1 flex flex-col-reverse gap-4 sm:flex-row h-fit lg:sticky lg:top-24">
+        <div className="flex-1 flex flex-col-reverse gap-4 sm:flex-row h-fit lg:sticky lg:top-24 lg:max-w-[500px] xl:max-w-[560px]">
           <div className="flex sm:flex-col overflow-x-auto sm:overflow-y-auto justify-between sm:justify-start gap-3 sm:w-[15%] w-full no-scrollbar">
             {initialProductData.image.map((item, index) => (
               <div
@@ -66,12 +66,12 @@ const ProductClient = ({ initialProductData }: { initialProductData: ExtendedPro
                 className={`relative aspect-square w-[22%] sm:w-full flex-shrink-0 cursor-pointer rounded-lg overflow-hidden border-2 transition-all ${image === item ? "border-black" : "border-transparent bg-zinc-50"}`}
                 onClick={() => setImage(item)}
               >
-                <Image 
-                  fill 
-                  src={item} 
-                  alt={`thumb-${index}`} 
-                  className="object-cover" 
-                  sizes="10vw" 
+                <Image
+                  fill
+                  src={item}
+                  alt={`thumb-${index}`}
+                  className="object-cover"
+                  sizes="10vw"
                   // 🟢 Bypasses the pod network layout restriction for Cloudinary thumbnails
                   unoptimized={true}
                 />
@@ -79,15 +79,15 @@ const ProductClient = ({ initialProductData }: { initialProductData: ExtendedPro
             ))}
           </div>
 
-          <div className="w-full sm:w-[85%] bg-zinc-50 rounded-2xl overflow-hidden border border-zinc-100">
-            <div className="relative aspect-[4/5] w-full">
-              <Image 
-                fill 
-                src={image} 
-                alt="main-product" 
-                className="object-cover hover:scale-105 transition-transform duration-700" 
-                priority 
-                sizes="(max-width: 1024px) 100vw, 40vw" 
+          <div className="w-full sm:w-[85%] bg-zinc-50 rounded-2xl overflow-hidden border border-zinc-100 max-h-[600px] xl:max-h-[700px]">
+            <div className="relative aspect-[4/5] w-full max-h-[600px] xl:max-h-[700px]">
+              <Image
+                fill
+                src={image}
+                alt="main-product"
+                className="object-cover hover:scale-105 transition-transform duration-700"
+                priority
+                sizes="(max-width: 1024px) 100vw, 40vw"
                 // 🟢 Bypasses the pod network layout restriction for the large main image
                 unoptimized={true}
               />
