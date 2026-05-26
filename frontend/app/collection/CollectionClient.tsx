@@ -165,7 +165,7 @@ const CollectionClient = ({ initialProducts }: { initialProducts: Product[] }) =
 
         {/* Product Grid */}
         {filterProducts.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-x-4 gap-y-10 px-2 sm:px-0">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-x-4 gap-y-10 px-2 sm:px-0">
             {filterProducts.map((item) => (
               /* 🟢 PRO-TIP APPLIED: Pass the entire product object */
               <ProductItem key={item._id} product={item} />
