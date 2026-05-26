@@ -11,7 +11,7 @@
             }
         }, 
         {
-            "src": "api/inventory.go",
+            "src": "vercel/inventory.go",
             "use": "@vercel/go"
         }
     ],

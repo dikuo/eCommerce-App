@@ -1,4 +1,4 @@
-package api
+package handler
 
 import (
 	"context"
@@ -13,10 +13,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-type Prodcut struct {
+type Product struct {
 	ID    primitive.ObjectID `bson:"_id" json:"id"`
 	Name  string             `bson:"name" json:"product_name"`
-	Stock int                `bson:"stock" json:"current_stock"`
+	Stock int                `bson:"stock" json:"stock"`
 }
 
 var mongoClient *mongo.Client
@@ -38,10 +38,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(map[string]string{"error": "MongoDB URI not set"})
 			return
 		}
-
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-
 		client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
 		if err != nil || client.Ping(ctx, nil) != nil {
 			w.WriteHeader(http.StatusInternalServerError)
@@ -52,10 +50,6 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	idParam := r.URL.Query().Get("id")
-	if idParam == "" {
-		idParam = r.PathValue("id")
-	}
-
 	if idParam == "" {
 		w.WriteHeader(http.StatusBadRequest)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Product ID is required"})
@@ -74,7 +68,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 
 	collection := mongoClient.Database("eCommerce").Collection("products")
 
-	var product Prodcut
+	var product Product
 	err = collection.FindOne(ctx, bson.M{"_id": objID}).Decode(&product)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
@@ -82,17 +76,15 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 			json.NewEncoder(w).Encode(map[string]string{"error": "Product not found"})
 			return
 		}
-
 		w.WriteHeader(http.StatusInternalServerError)
 		json.NewEncoder(w).Encode(map[string]string{"error": "Failed to retrieve product"})
 		return
 	}
 
 	json.NewEncoder(w).Encode(map[string]any{
-		"product_name": product.Name,
 		"id":           product.ID,
+		"product_name": product.Name,
 		"stock":        product.Stock,
 		"provider":     "Inventory Go Engine",
 	})
-
 }
