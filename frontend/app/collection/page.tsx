@@ -7,7 +7,8 @@ export const revalidate = 60;
 export default async function Page() {
   const backendUrl = process.env.KUBERNETES_SERVICE_HOST
   ? "http://backend-service.default.svc.cluster.local:8080"
-  : "http://localhost:8080";
+  : process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+
   let initialProducts = [];
 
   try {
@@ -27,7 +28,7 @@ export default async function Page() {
   } catch (error) {
     // 🟢 This is the "Safety Net" for your Docker Build
     console.error("⚠️ Collection Page: Backend unreachable during build. Defaulting to empty list.");
-    initialProducts = process.env.CI ? ciMockProducts : [];; 
+    initialProducts = [];
   }
 
   return (
