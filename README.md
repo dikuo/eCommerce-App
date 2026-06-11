@@ -10,12 +10,12 @@ A full-stack MERN e-commerce application modernized with Next.js, a Go inventory
 
 ## Tech Stack
 
-**Frontend:** Next.js (ISR), React, Tailwind CSS
-**Backend:** Node.js, Express, MongoDB Atlas
-**Inventory Service:** Go (REST API)
-**Payments:** Stripe, PayPal
-**Auth:** JWT
-**Testing:** Jest, Playwright
+**Frontend:** Next.js (ISR), React, Tailwind CSS, shadcn/ui<br>
+**Backend:** Node.js, Express, MongoDB Atlas<br>
+**Inventory Service:** Go (REST API)<br>
+**Payments:** Stripe, PayPal<br>
+**Auth:** JWT<br>
+**Testing:** Jest, Playwright<br>
 **Infrastructure:** Docker, Kubernetes, GitHub Actions CI/CD, Vercel
 
 ## Features
